@@ -1,0 +1,11 @@
+# Abaikan semua file Microsoft Word
+*.doc
+*.docx
+~$*
+
+# Abaikan semua file PDF
+*.pdf
+
+# (opsional) file sistem Windows
+Thumbs.db
+Desktop.ini
