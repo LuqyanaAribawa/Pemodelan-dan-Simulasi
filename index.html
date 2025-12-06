@@ -820,14 +820,14 @@
 
                             <!-- Step 5 -->
                             <div class="step-box mb-4">
-                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 5: Hitung Peluang P(70 < X < 90)</p>
+                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 5: Hitung Peluang P(70 &lt; X &lt; 90)</p>
                                 <div class="p-3 bg-black/30 rounded">
                                     <p class="text-gray-300 mb-2"><span class="text-neonYellow">Logika:</span> Untuk mencari area ANTARA dua nilai Z, kita kurangi:</p>
-                                    <p class="text-gray-300 mb-2"><span class="text-neonYellow">Rumus:</span> P(70 < X < 90) = Φ(Z₂) - Φ(Z₁)</p>
+                                    <p class="text-gray-300 mb-2"><span class="text-neonYellow">Rumus:</span> P(70 &lt; X &lt; 90) = Φ(Z₂) - Φ(Z₁)</p>
                                     <p class="text-gray-300 mb-2"><span class="text-neonYellow">Substitusi:</span> P = Φ(1.5) - Φ(-0.5)</p>
                                     <p class="text-gray-300 mb-2"><span class="text-neonYellow">Hitung:</span> P = 0.9332 - 0.3085</p>
                                     <div class="bg-neonGreen/20 p-4 rounded mt-3 border-2 border-neonGreen">
-                                        <p class="text-white text-xl">P(70 < X < 90) = <span class="text-neonGreen font-bold text-3xl">0.6247</span></p>
+                                        <p class="text-white text-xl">P(70 &lt; X &lt; 90) = <span class="text-neonGreen font-bold text-3xl">0.6247</span></p>
                                         <p class="text-gray-400 mt-2">Artinya: 62.47% mahasiswa nilainya antara 70-90</p>
                                     </div>
                                 </div>
@@ -868,7 +868,7 @@
                             </summary>
                             <div class="mt-4 space-y-4">
                                 <div class="practice-item p-4 rounded bg-black/30">
-                                    <p class="text-neonGreen font-bold">Soal 3.1: Lampu masa pakai μ=800 jam, σ=40 jam. Peluang mati < 750 jam?</p>
+                                    <p class="text-neonGreen font-bold">Soal 3.1: Lampu masa pakai μ=800 jam, σ=40 jam. Peluang mati &lt; 750 jam?</p>
                                     <div class="mt-3 p-3 bg-neonGreen/10 rounded border border-neonGreen/30">
                                         <p class="text-neonCyan font-bold">Langkah:</p>
                                         <p class="text-gray-300">Z = (750-800)/40 = -50/40 = <span class="text-neonYellow">-1.25</span></p>
@@ -877,13 +877,13 @@
                                     </div>
                                 </div>
                                 <div class="practice-item p-4 rounded bg-black/30">
-                                    <p class="text-neonGreen font-bold">Soal 3.2: Tinggi badan μ=165cm, Variansi=25cm². Peluang tinggi > 170cm?</p>
+                                    <p class="text-neonGreen font-bold">Soal 3.2: Tinggi badan μ=165cm, Variansi=25cm². Peluang tinggi &gt; 170cm?</p>
                                     <div class="mt-3 p-3 bg-neonGreen/10 rounded border border-neonGreen/30">
                                         <p class="text-neonCyan font-bold">Langkah:</p>
                                         <p class="text-gray-300">⚠️ Hati-hati: Variansi = σ². Jadi σ = √25 = <span class="text-neonYellow">5</span></p>
                                         <p class="text-gray-300">Z = (170-165)/5 = 5/5 = <span class="text-neonYellow">1.0</span></p>
                                         <p class="text-gray-300">Dari tabel: Φ(1.0) = 0.8413</p>
-                                        <p class="text-gray-300">P(X > 170) = 1 - 0.8413 = <span class="text-neonGreen font-bold">0.1587 = 15.87%</span></p>
+                                        <p class="text-gray-300">P(X &gt; 170) = 1 - 0.8413 = <span class="text-neonGreen font-bold">0.1587 = 15.87%</span></p>
                                     </div>
                                 </div>
                             </div>
@@ -2260,7 +2260,7 @@ Lanjutan kode (langsung paste setelah Bagian 2):
             const npm = parseInt(npmInput);
             
             // Validate input
-            if (npmInput === '' || isNaN(npm) || npm < 0) {
+            if (npmInput === '' || isNaN(npm) || npm &lt; 0) {
                 resetLCGResults();
                 return;
             }
@@ -2272,7 +2272,7 @@ Lanjutan kode (langsung paste setelah Bagian 2):
             
             // Z0 = 3 digit terakhir (mod 1000 untuk safety, tapi tampilkan mod 100 untuk seed)
             const z0_display = npm % 1000; // untuk display
-            const z0 = npm % 100; // untuk kalkulasi jika > 100
+            const z0 = npm % 100; // untuk kalkulasi jika &gt; 100
             
             // Calculate Z1, Z2, Z3
             const z1_full = a * (npm % 1000) + c;
