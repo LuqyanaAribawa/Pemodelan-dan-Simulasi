@@ -2260,7 +2260,7 @@ Lanjutan kode (langsung paste setelah Bagian 2):
             const npm = parseInt(npmInput);
             
             // Validate input
-            if (npmInput === '' || isNaN(npm) || npm &lt; 0) {
+            if (npmInput === '' || isNaN(npm) || npm < 0) {
                 resetLCGResults();
                 return;
             }
@@ -2272,7 +2272,7 @@ Lanjutan kode (langsung paste setelah Bagian 2):
             
             // Z0 = 3 digit terakhir (mod 1000 untuk safety, tapi tampilkan mod 100 untuk seed)
             const z0_display = npm % 1000; // untuk display
-            const z0 = npm % 100; // untuk kalkulasi jika &gt; 100
+            const z0 = npm % 100; // untuk kalkulasi jika > 100
             
             // Calculate Z1, Z2, Z3
             const z1_full = a * (npm % 1000) + c;
