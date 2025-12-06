@@ -1,0 +1,2560 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🎯 UTS Pemodelan & Simulasi - Dr. Dini Sundani | Gunadarma</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        mono: ['JetBrains Mono', 'Courier New', 'monospace'],
+                    },
+                    colors: {
+                        neonGreen: '#39FF14',
+                        neonYellow: '#FFFF00',
+                        neonCyan: '#00FFFF',
+                        neonPink: '#FF00FF',
+                        neonOrange: '#FF6600',
+                        darkBg: '#000000',
+                        darkCard: '#0a0a0a',
+                    },
+                    animation: {
+                        'pulse-glow': 'pulseGlow 2s ease-in-out infinite',
+                        'unlock': 'unlock 0.6s ease-out forwards',
+                    },
+                    keyframes: {
+                        pulseGlow: {
+                            '0%, 100%': { boxShadow: '0 0 5px currentColor, 0 0 10px currentColor' },
+                            '50%': { boxShadow: '0 0 20px currentColor, 0 0 30px currentColor' },
+                        },
+                        unlock: {
+                            '0%': { transform: 'scale(0.8)', opacity: '0' },
+                            '50%': { transform: 'scale(1.05)' },
+                            '100%': { transform: 'scale(1)', opacity: '1' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        * { font-family: 'JetBrains Mono', 'Courier New', monospace; }
+        ::-webkit-scrollbar { width: 8px; }
+        ::-webkit-scrollbar-track { background: #000; }
+        ::-webkit-scrollbar-thumb { background: #39FF14; border-radius: 4px; }
+        .terminal-cursor::after { content: '█'; animation: blink 1s infinite; }
+        @keyframes blink { 0%, 50% { opacity: 1; } 51%, 100% { opacity: 0; } }
+        .glow-text { text-shadow: 0 0 10px currentColor, 0 0 20px currentColor; }
+        .card-locked {
+            filter: grayscale(100%) brightness(0.3);
+            pointer-events: none;
+            position: relative;
+        }
+        .card-locked::before {
+            content: '🔒 TERKUNCI - Selesaikan materi sebelumnya';
+            position: absolute;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.2rem;
+            color: #666;
+            z-index: 10;
+            text-align: center;
+            width: 80%;
+        }
+        .card-unlocked { animation: unlock 0.6s ease-out forwards; }
+        .exam-mode { background: #ffffff !important; }
+        .exam-mode * { color: #000000 !important; text-shadow: none !important; box-shadow: none !important; }
+        .exam-mode .exam-card { background: #ffffff !important; border: 2px solid #000000 !important; }
+        .formula-box {
+            background: linear-gradient(135deg, rgba(57, 255, 20, 0.1), rgba(0, 255, 255, 0.05));
+            border-left: 4px solid #39FF14;
+        }
+        .symbol-explain {
+            background: rgba(255, 255, 0, 0.1);
+            border: 1px dashed #FFFF00;
+            padding: 1rem;
+            margin: 0.5rem 0;
+            border-radius: 8px;
+        }
+        .step-box {
+            background: rgba(0, 255, 255, 0.05);
+            border-left: 3px solid #00FFFF;
+            padding: 1rem;
+            margin: 0.5rem 0;
+        }
+        .how-to-explain {
+            background: rgba(255, 0, 255, 0.1);
+            border: 2px solid #FF00FF;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+        }
+        .read-as {
+            color: #FF6600;
+            font-style: italic;
+        }
+        .cheatsheet-sticky {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            transform: translateY(calc(100% - 50px));
+            transition: transform 0.3s ease;
+        }
+        .cheatsheet-sticky:hover, .cheatsheet-sticky.expanded {
+            transform: translateY(0);
+        }
+        .practice-item {
+            border-left: 3px solid #39FF14;
+            transition: all 0.3s ease;
+        }
+        .practice-item:hover {
+            border-left-color: #00FFFF;
+            background: rgba(0, 255, 255, 0.05);
+        }
+        @media print {
+            .no-print { display: none !important; }
+            body { background: white !important; }
+            * { color: black !important; }
+        }
+    </style>
+</head>
+<body class="bg-darkBg text-neonGreen min-h-screen" id="mainBody">
+
+    <!-- Header -->
+    <header class="border-b border-neonGreen/30 sticky top-0 bg-darkBg/95 backdrop-blur-sm z-50 no-print">
+        <div class="container mx-auto px-4 py-4">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="text-center md:text-left">
+                    <h1 class="text-2xl md:text-3xl font-bold glow-text flex items-center gap-2">
+                        <span class="text-neonYellow">></span> UTS_PERSIAPAN.exe
+                    </h1>
+                    <p class="text-sm text-neonCyan mt-1">
+                        📚 Pemodelan & Simulasi | Dr. Dini Sundani | Gunadarma
+                    </p>
+                </div>
+                <div class="flex items-center gap-3">
+                    <div id="progressContainer" class="hidden md:block">
+                        <div class="text-xs text-neonYellow mb-1">Progress: <span id="progressText">0/7</span></div>
+                        <div class="w-48 h-2 bg-darkCard rounded-full overflow-hidden border border-neonGreen/30">
+                            <div id="progressBar" class="h-full bg-gradient-to-r from-neonGreen to-neonCyan transition-all duration-500" style="width: 0%"></div>
+                        </div>
+                    </div>
+                    <button id="examModeBtn" onclick="toggleExamMode()" 
+                        class="px-4 py-2 bg-red-600 hover:bg-red-500 text-white rounded font-bold transition-all flex items-center gap-2 text-sm">
+                        <span>📝</span> MODE UJIAN
+                    </button>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Exam Mode Timer Bar -->
+    <div id="examTimerBar" class="hidden fixed top-0 left-0 right-0 bg-white border-b-4 border-black z-[60] py-4 px-6">
+        <div class="container mx-auto flex justify-between items-center">
+            <div class="font-bold text-2xl text-black">📋 UJIAN TENGAH SEMESTER</div>
+            <div class="flex items-center gap-6">
+                <div class="text-center">
+                    <div class="text-xs text-gray-600">WAKTU TERSISA</div>
+                    <div id="examTimer" class="text-4xl font-bold text-black">60:00</div>
+                </div>
+                <button onclick="toggleExamMode()" class="px-4 py-2 bg-black text-white rounded font-bold">
+                    ✕ KELUAR
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <main class="container mx-auto px-4 py-8 mb-32">
+        
+        <!-- Intro Section -->
+        <section class="mb-8 text-center">
+            <div class="inline-block px-6 py-3 border border-neonGreen/50 rounded-lg bg-darkCard mb-6">
+                <p class="text-neonYellow text-lg terminal-cursor">
+                    Selamat datang, Mahasiswa
+                </p>
+            </div>
+            <div class="max-w-4xl mx-auto p-4 border border-neonPink rounded-lg bg-darkCard">
+                <p class="text-neonPink font-bold mb-2">⚠️ PENTING - CARA PENGGUNAAN:</p>
+                <ul class="text-left text-sm text-gray-300 space-y-1">
+                    <li>✅ Setiap materi dilengkapi <span class="text-neonYellow">CARA BACA SIMBOL</span></li>
+                    <li>✅ Setiap rumus ada <span class="text-neonCyan">LANGKAH-LANGKAH DETAIL</span></li>
+                    <li>✅ Ada panduan <span class="text-neonPink">"CARA JELASKAN KE DOSEN"</span></li>
+                    <li>✅ Pelajari bertahap, jangan loncat-loncat!</li>
+                </ul>
+            </div>
+        </section>
+
+        <!-- Kisi-Kisi Official -->
+        <section class="mb-8 p-6 border-2 border-neonYellow rounded-lg bg-darkCard">
+            <h2 class="text-xl font-bold text-neonYellow mb-4">📋 KISI-KISI RESMI - Dr. Dini Sundani</h2>
+            <div class="grid md:grid-cols-2 gap-3 text-sm">
+                <div class="flex items-start gap-2 p-2 border border-neonGreen/20 rounded">
+                    <span class="text-neonGreen font-bold">1.</span>
+                    <span>Teori pemodelan dan simulasi</span>
+                </div>
+                <div class="flex items-start gap-2 p-2 border border-neonGreen/20 rounded">
+                    <span class="text-neonGreen font-bold">2.</span>
+                    <span>Probabilitas kuis B/S (3 pertanyaan)</span>
+                </div>
+                <div class="flex items-start gap-2 p-2 border border-neonGreen/20 rounded">
+                    <span class="text-neonGreen font-bold">3.</span>
+                    <span>Distribusi Normal (nilai 70-90)</span>
+                </div>
+                <div class="flex items-start gap-2 p-2 border border-neonGreen/20 rounded">
+                    <span class="text-neonGreen font-bold">4.</span>
+                    <span>Distribusi Binomial (x=0, anemia)</span>
+                </div>
+                <div class="flex items-start gap-2 p-2 border border-neonGreen/20 rounded">
+                    <span class="text-neonGreen font-bold">5.</span>
+                    <span>Probabilitas Bersyarat (sparepart)</span>
+                </div>
+                <div class="flex items-start gap-2 p-2 border border-neonGreen/20 rounded">
+                    <span class="text-neonGreen font-bold">6.</span>
+                    <span>Variabel Acak Diskrit (E(X), Var(X))</span>
+                </div>
+                <div class="flex items-start gap-2 p-2 border border-neonYellow/40 rounded md:col-span-2">
+                    <span class="text-neonYellow font-bold">7.</span>
+                    <span class="text-neonYellow">Membangkitkan bilangan acak dengan 3 digit NPM (LCG)</span>
+                </div>
+            </div>
+            <p class="text-xs text-gray-500 mt-4">⚠️ Boleh menggunakan kalkulator CASIO (bukan HP)</p>
+        </section>
+
+        <!-- Materials Section -->
+        <section id="materialsSection">
+            <h2 class="text-2xl font-bold text-neonGreen mb-6 glow-text">📚 MATERI & PEMBAHASAN LENGKAP</h2>
+
+            <div class="space-y-8">
+
+                <!-- ==================== MATERIAL 1: TEORI ==================== -->
+                <div id="material-1" class="material-card border-2 border-neonGreen rounded-lg bg-darkCard overflow-hidden exam-card">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-bold text-neonGreen flex items-center gap-3">
+                                <span class="w-10 h-10 rounded-full bg-neonGreen text-black flex items-center justify-center font-bold">1</span>
+                                TEORI PEMODELAN & SIMULASI
+                            </h3>
+                            <span id="status-1" class="px-3 py-1 rounded text-xs bg-yellow-600">BELUM DIBACA</span>
+                        </div>
+
+                        <!-- SOAL -->
+                        <div class="formula-box p-4 rounded mb-6">
+                            <p class="text-neonYellow font-bold mb-2">📌 SOAL:</p>
+                            <p class="text-white text-lg">Jelaskan perbedaan Model DETERMINISTIK dan STOKASTIK!</p>
+                        </div>
+
+                        <!-- JAWABAN LENGKAP -->
+                        <div class="bg-black/50 p-5 rounded border border-neonGreen/30 mb-6">
+                            <p class="text-neonGreen font-bold text-lg mb-4">✅ JAWABAN LENGKAP:</p>
+                            
+                            <!-- Deterministik -->
+                            <div class="mb-6 p-4 border border-neonCyan/30 rounded bg-black/30">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <span class="text-3xl">⚙️</span>
+                                    <h4 class="text-neonCyan font-bold text-xl">1. MODEL DETERMINISTIK</h4>
+                                </div>
+                                
+                                <div class="symbol-explain">
+                                    <p class="text-neonYellow font-bold mb-2">📖 ARTI KATA:</p>
+                                    <p class="text-gray-300"><span class="text-neonCyan font-bold">"Deterministik"</span> berasal dari kata "determine" = menentukan dengan pasti</p>
+                                    <p class="read-as mt-2">🔊 Cara baca: "De-ter-mi-nis-tik"</p>
+                                </div>
+                                
+                                <div class="step-box mt-4">
+                                    <p class="text-neonCyan font-bold mb-2">📝 DEFINISI:</p>
+                                    <p class="text-white text-lg">Model di mana <span class="text-neonYellow font-bold">INPUT yang SAMA</span> akan SELALU menghasilkan <span class="text-neonYellow font-bold">OUTPUT yang SAMA</span>.</p>
+                                    <p class="text-gray-400 mt-2">➜ Tidak ada unsur keacakan/peluang</p>
+                                    <p class="text-gray-400">➜ Hasilnya PASTI dan bisa diprediksi 100%</p>
+                                </div>
+                                
+                                <div class="mt-4 p-3 bg-neonGreen/10 rounded">
+                                    <p class="text-neonGreen font-bold mb-2">📌 CONTOH NYATA:</p>
+                                    <ul class="text-gray-300 space-y-2">
+                                        <li>• <span class="text-neonYellow">Rumus Fisika F = m × a</span>
+                                            <br><span class="text-gray-500 text-sm ml-4">→ Jika massa 10kg dan percepatan 2m/s², maka gaya PASTI 20 Newton</span>
+                                        </li>
+                                        <li>• <span class="text-neonYellow">Rumus Luas Lingkaran = π × r²</span>
+                                            <br><span class="text-gray-500 text-sm ml-4">→ Jika jari-jari 7cm, luas PASTI 154 cm²</span>
+                                        </li>
+                                        <li>• <span class="text-neonYellow">Perhitungan Bunga Bank Tetap</span>
+                                            <br><span class="text-gray-500 text-sm ml-4">→ Bunga 5% dari 1 juta PASTI 50 ribu</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Stokastik -->
+                            <div class="mb-6 p-4 border border-neonPink/30 rounded bg-black/30">
+                                <div class="flex items-center gap-3 mb-3">
+                                    <span class="text-3xl">🎲</span>
+                                    <h4 class="text-neonPink font-bold text-xl">2. MODEL STOKASTIK</h4>
+                                </div>
+                                
+                                <div class="symbol-explain">
+                                    <p class="text-neonYellow font-bold mb-2">📖 ARTI KATA:</p>
+                                    <p class="text-gray-300"><span class="text-neonPink font-bold">"Stokastik"</span> berasal dari bahasa Yunani "stokhastikos" = bisa menebak/acak</p>
+                                    <p class="read-as mt-2">🔊 Cara baca: "Sto-kas-tik"</p>
+                                </div>
+                                
+                                <div class="step-box mt-4">
+                                    <p class="text-neonPink font-bold mb-2">📝 DEFINISI:</p>
+                                    <p class="text-white text-lg">Model yang melibatkan unsur <span class="text-neonYellow font-bold">PELUANG/PROBABILITAS</span> sehingga hasilnya <span class="text-neonYellow font-bold">BISA BERBEDA-BEDA</span>.</p>
+                                    <p class="text-gray-400 mt-2">➜ Ada unsur keacakan (random)</p>
+                                    <p class="text-gray-400">➜ Hasilnya TIDAK PASTI, hanya bisa diperkirakan</p>
+                                </div>
+                                
+                                <div class="mt-4 p-3 bg-neonPink/10 rounded">
+                                    <p class="text-neonPink font-bold mb-2">📌 CONTOH NYATA:</p>
+                                    <ul class="text-gray-300 space-y-2">
+                                        <li>• <span class="text-neonYellow">Simulasi Antrian Bank</span>
+                                            <br><span class="text-gray-500 text-sm ml-4">→ Kedatangan nasabah ACAK, tidak bisa dipastikan</span>
+                                        </li>
+                                        <li>• <span class="text-neonYellow">Pergerakan Harga Saham</span>
+                                            <br><span class="text-gray-500 text-sm ml-4">→ Naik/turun dipengaruhi banyak faktor acak</span>
+                                        </li>
+                                        <li>• <span class="text-neonYellow">Prediksi Cuaca</span>
+                                            <br><span class="text-gray-500 text-sm ml-4">→ Hanya bisa perkiraan, tidak 100% pasti</span>
+                                        </li>
+                                        <li>• <span class="text-neonYellow">Lempar Dadu/Koin</span>
+                                            <br><span class="text-gray-500 text-sm ml-4">→ Hasilnya random setiap kali lempar</span>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+
+                            <!-- Tabel Perbandingan -->
+                            <div class="overflow-x-auto mb-6">
+                                <p class="text-neonYellow font-bold mb-3">📊 TABEL PERBANDINGAN:</p>
+                                <table class="w-full text-sm border border-neonGreen/50">
+                                    <thead>
+                                        <tr class="bg-neonGreen/20">
+                                            <th class="p-3 border border-neonGreen/30 text-left">Aspek</th>
+                                            <th class="p-3 border border-neonGreen/30 text-neonCyan">DETERMINISTIK</th>
+                                            <th class="p-3 border border-neonGreen/30 text-neonPink">STOKASTIK</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                        <tr>
+                                            <td class="p-3 border border-neonGreen/30">Hasil</td>
+                                            <td class="p-3 border border-neonGreen/30">PASTI (100%)</td>
+                                            <td class="p-3 border border-neonGreen/30">TIDAK PASTI (ada peluang)</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="p-3 border border-neonGreen/30">Keacakan</td>
+                                            <td class="p-3 border border-neonGreen/30">TIDAK ADA</td>
+                                            <td class="p-3 border border-neonGreen/30">ADA</td>
+                                        </tr>
+                                        <tr>
+                                            <td class="p-3 border border-neonGreen/30">Input sama</td>
+                                            <td class="p-3 border border-neonGreen/30">Output SAMA terus</td>
+                                            <td class="p-3 border border-neonGreen/30">Output BISA BEDA</td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+
+                            <!-- Cara Jelaskan ke Dosen -->
+                            <div class="how-to-explain">
+                                <p class="text-neonPink font-bold text-lg mb-3">🎤 CARA JELASKAN KE DOSEN:</p>
+                                <div class="bg-black/50 p-4 rounded text-gray-200">
+                                    <p class="mb-2"><span class="text-neonYellow">"Bu Dini, perbedaan utamanya adalah:</span></p>
+                                    <p class="mb-2">Model <span class="text-neonCyan font-bold">Deterministik</span> itu hasilnya PASTI. Kalau inputnya sama, outputnya pasti sama juga. Contohnya rumus fisika F=ma, kalau massa 10 kg dan percepatan 2, pasti hasilnya 20 Newton.</p>
+                                    <p class="mb-2">Sedangkan model <span class="text-neonPink font-bold">Stokastik</span> itu ada unsur PELUANG atau keacakan. Jadi hasilnya bisa beda-beda. Contohnya simulasi antrian, kita tidak bisa pastikan jam berapa nasabah datang."</p>
+                                    <p class="text-neonGreen font-bold mt-3">✓ Singkat: Deterministik = PASTI, Stokastik = ada PELUANG</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Materi Tambahan -->
+                        <details class="group mb-4">
+                            <summary class="cursor-pointer text-neonCyan hover:text-neonYellow transition flex items-center gap-2 p-3 bg-black/30 rounded">
+                                <span class="group-open:rotate-90 transition-transform">▶</span>
+                                <span>📚 MATERI TAMBAHAN: Jenis Model & Verifikasi/Validasi</span>
+                            </summary>
+                            <div class="mt-4 p-4 border border-neonGreen/30 rounded bg-black/20">
+                                
+                                <!-- Jenis Model -->
+                                <div class="mb-6">
+                                    <p class="text-neonYellow font-bold mb-3">🔷 JENIS-JENIS MODEL:</p>
+                                    <div class="grid md:grid-cols-3 gap-4">
+                                        <div class="p-4 border border-neonGreen/30 rounded">
+                                            <p class="text-neonGreen font-bold mb-2">1. Model IKONIK</p>
+                                            <p class="text-gray-400 text-sm mb-2">(dibaca: I-ko-nik)</p>
+                                            <p class="text-gray-300">= Tiruan FISIK dari benda asli</p>
+                                            <p class="text-neonYellow text-sm mt-2">Contoh: Maket gedung, Prototipe mobil, Globe bumi</p>
+                                        </div>
+                                        <div class="p-4 border border-neonCyan/30 rounded">
+                                            <p class="text-neonCyan font-bold mb-2">2. Model ANALOG</p>
+                                            <p class="text-gray-400 text-sm mb-2">(dibaca: A-na-log)</p>
+                                            <p class="text-gray-300">= Representasi dengan MEDIA LAIN</p>
+                                            <p class="text-neonYellow text-sm mt-2">Contoh: Peta, Speedometer, Termometer</p>
+                                        </div>
+                                        <div class="p-4 border border-neonPink/30 rounded">
+                                            <p class="text-neonPink font-bold mb-2">3. Model SIMBOLIK</p>
+                                            <p class="text-gray-400 text-sm mb-2">(dibaca: Sim-bo-lik)</p>
+                                            <p class="text-gray-300">= Menggunakan SIMBOL MATEMATIS</p>
+                                            <p class="text-neonYellow text-sm mt-2">Contoh: Rumus E=mc², F=ma</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Verifikasi vs Validasi -->
+                                <div class="p-4 border border-neonYellow/30 rounded">
+                                    <p class="text-neonYellow font-bold mb-3">🔍 VERIFIKASI vs VALIDASI:</p>
+                                    
+                                    <div class="grid md:grid-cols-2 gap-4 mb-4">
+                                        <div class="p-3 bg-green-900/20 rounded border border-green-500/30">
+                                            <p class="text-green-400 font-bold text-lg mb-2">VERIFIKASI</p>
+                                            <p class="read-as mb-2">🔊 Cara baca: Ve-ri-fi-ka-si</p>
+                                            <p class="text-white font-bold">"Apakah model DIBUAT dengan BENAR?"</p>
+                                            <p class="text-gray-400 text-sm mt-2">→ Mengecek: error, bug, kesalahan coding</p>
+                                            <p class="text-gray-400 text-sm">→ Fokus: cara pembuatan model</p>
+                                        </div>
+                                        <div class="p-3 bg-blue-900/20 rounded border border-blue-500/30">
+                                            <p class="text-blue-400 font-bold text-lg mb-2">VALIDASI</p>
+                                            <p class="read-as mb-2">🔊 Cara baca: Va-li-da-si</p>
+                                            <p class="text-white font-bold">"Apakah model yang BENAR yang dibuat?"</p>
+                                            <p class="text-gray-400 text-sm mt-2">→ Mengecek: kesesuaian dengan sistem nyata</p>
+                                            <p class="text-gray-400 text-sm">→ Fokus: apakah model merepresentasikan kenyataan</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="p-3 bg-neonYellow/10 rounded border border-neonYellow">
+                                        <p class="text-neonYellow font-bold">⚠️ PENTING:</p>
+                                        <p class="text-white">VERIFIKASI dilakukan <span class="text-neonGreen font-bold">TERLEBIH DAHULU</span> sebelum VALIDASI!</p>
+                                        <p class="text-gray-400 text-sm mt-1">Logikanya: pastikan dulu programnya tidak error, baru cek apakah sesuai kenyataan.</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </details>
+
+                        <!-- Latihan Soal -->
+                        <details class="group mb-4">
+                            <summary class="cursor-pointer text-neonCyan hover:text-neonYellow transition flex items-center gap-2 p-3 bg-black/30 rounded">
+                                <span class="group-open:rotate-90 transition-transform">▶</span>
+                                <span>📝 LATIHAN SOAL VARIASI</span>
+                            </summary>
+                            <div class="mt-4 space-y-3">
+                                <div class="practice-item p-4 rounded bg-black/30">
+                                    <p class="text-neonGreen font-bold">Soal 1.1:</p>
+                                    <p class="text-gray-300">Jelaskan perbedaan Model Ikonik, Analog, dan Simbolik. Berikan contoh!</p>
+                                </div>
+                                <div class="practice-item p-4 rounded bg-black/30">
+                                    <p class="text-neonGreen font-bold">Soal 1.2:</p>
+                                    <p class="text-gray-300">Apa perbedaan Verifikasi dan Validasi? Mana yang dilakukan dulu?</p>
+                                </div>
+                                <div class="practice-item p-4 rounded bg-black/30">
+                                    <p class="text-neonGreen font-bold">Soal 1.3:</p>
+                                    <p class="text-gray-300">Klasifikasikan: Antrian bank (Diskrit/Kontinu?) dan Level air bendungan (Diskrit/Kontinu?)</p>
+                                    <p class="text-neonYellow text-sm mt-2">💡 Jawab: Antrian = Diskrit (orang dihitung satuan), Air = Kontinu (mengalir terus)</p>
+                                </div>
+                            </div>
+                        </details>
+
+                        <button onclick="completeSection(1)" id="btn-1" class="w-full py-4 bg-neonGreen text-black font-bold rounded hover:bg-neonYellow transition text-lg">
+                            ✓ SAYA SUDAH PAHAM - UNLOCK MATERI 2
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ==================== MATERIAL 2: PROBABILITAS KUIS ==================== -->
+                <div id="material-2" class="material-card card-locked border-2 border-neonGreen rounded-lg bg-darkCard overflow-hidden exam-card">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-bold text-neonGreen flex items-center gap-3">
+                                <span class="w-10 h-10 rounded-full bg-neonGreen text-black flex items-center justify-center font-bold">2</span>
+                                PROBABILITAS KUIS (3 Pertanyaan B/S)
+                            </h3>
+                            <span id="status-2" class="px-3 py-1 rounded text-xs bg-gray-600">TERKUNCI</span>
+                        </div>
+
+                        <!-- SOAL -->
+                        <div class="formula-box p-4 rounded mb-6">
+                            <p class="text-neonYellow font-bold mb-2">📌 SOAL:</p>
+                            <p class="text-white text-lg">Dalam kuis 3 pertanyaan dengan jawaban Benar/Salah, jika dijawab secara acak, berapa peluang menjawab <span class="text-neonCyan font-bold">tepat 2 soal benar</span>?</p>
+                        </div>
+
+                        <!-- PENJELASAN SIMBOL -->
+                        <div class="symbol-explain mb-6">
+                            <p class="text-neonYellow font-bold mb-3">📖 PENJELASAN SIMBOL & CARA BACA:</p>
+                            <div class="grid md:grid-cols-2 gap-3 text-sm">
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold">n(S)</p>
+                                    <p class="read-as">🔊 Dibaca: "n S" atau "jumlah ruang sampel"</p>
+                                    <p class="text-gray-400">Artinya: Total semua kemungkinan yang bisa terjadi</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold">n(A)</p>
+                                    <p class="read-as">🔊 Dibaca: "n A" atau "jumlah kejadian A"</p>
+                                    <p class="text-gray-400">Artinya: Jumlah kejadian yang kita inginkan</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold">P(A)</p>
+                                    <p class="read-as">🔊 Dibaca: "P A" atau "peluang A"</p>
+                                    <p class="text-gray-400">Artinya: Probabilitas/peluang kejadian A terjadi</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold">2³</p>
+                                    <p class="read-as">🔊 Dibaca: "dua pangkat tiga"</p>
+                                    <p class="text-gray-400">Artinya: 2 × 2 × 2 = 8</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RUMUS DASAR -->
+                        <div class="p-4 bg-neonCyan/10 rounded border-2 border-neonCyan mb-6 text-center">
+                            <p class="text-neonCyan font-bold mb-2">📐 RUMUS DASAR PROBABILITAS:</p>
+                            <p class="text-3xl font-bold text-white">P(A) = n(A) / n(S)</p>
+                            <p class="read-as mt-2">🔊 Dibaca: "Peluang A sama dengan n A dibagi n S"</p>
+                            <p class="text-gray-400 text-sm mt-2">Artinya: Peluang = Kejadian yang diinginkan ÷ Total kemungkinan</p>
+                        </div>
+
+                        <!-- LANGKAH-LANGKAH DETAIL -->
+                        <div class="bg-black/50 p-5 rounded border border-neonGreen/30 mb-6">
+                            <p class="text-neonGreen font-bold text-lg mb-4">✅ LANGKAH-LANGKAH PENGERJAAN:</p>
+                            
+                            <!-- Step 1 -->
+                            <div class="step-box mb-4">
+                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 1: Hitung Ruang Sampel n(S)</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-gray-300 mb-2"><span class="text-neonYellow">Logika:</span> Ada 3 soal, setiap soal punya 2 pilihan (B atau S)</p>
+                                    <p class="text-gray-300 mb-2"><span class="text-neonYellow">Rumus:</span> Kemungkinan = 2 × 2 × 2 = 2³</p>
+                                    <p class="text-gray-300 mb-3"><span class="text-neonYellow">Hitung:</span></p>
+                                    <div class="bg-neonGreen/10 p-3 rounded">
+                                        <p class="text-white">n(S) = 2³ = 2 × 2 × 2 = <span class="text-neonGreen font-bold text-2xl">8</span></p>
+                                    </div>
+                                    <p class="text-gray-500 text-sm mt-3">Daftar 8 kemungkinan:</p>
+                                    <div class="grid grid-cols-4 gap-2 mt-2 text-center text-sm">
+                                        <div class="p-2 bg-black/50 rounded">BBB</div>
+                                        <div class="p-2 bg-black/50 rounded">BBS</div>
+                                        <div class="p-2 bg-black/50 rounded">BSB</div>
+                                        <div class="p-2 bg-black/50 rounded">BSS</div>
+                                        <div class="p-2 bg-black/50 rounded">SBB</div>
+                                        <div class="p-2 bg-black/50 rounded">SBS</div>
+                                        <div class="p-2 bg-black/50 rounded">SSB</div>
+                                        <div class="p-2 bg-black/50 rounded">SSS</div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 2 -->
+                            <div class="step-box mb-4">
+                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 2: Hitung Kejadian yang Diinginkan n(A)</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-gray-300 mb-2"><span class="text-neonYellow">Yang dicari:</span> Tepat 2 jawaban Benar (dan 1 Salah)</p>
+                                    <p class="text-gray-300 mb-3"><span class="text-neonYellow">Cari dari daftar:</span></p>
+                                    <div class="grid grid-cols-3 gap-3 mb-3">
+                                        <div class="p-3 bg-neonGreen/20 rounded text-center border-2 border-neonGreen">
+                                            <p class="text-neonGreen font-bold text-xl">BBS</p>
+                                            <p class="text-gray-400 text-xs">B, B, S = 2 benar</p>
+                                        </div>
+                                        <div class="p-3 bg-neonGreen/20 rounded text-center border-2 border-neonGreen">
+                                            <p class="text-neonGreen font-bold text-xl">BSB</p>
+                                            <p class="text-gray-400 text-xs">B, S, B = 2 benar</p>
+                                        </div>
+                                        <div class="p-3 bg-neonGreen/20 rounded text-center border-2 border-neonGreen">
+                                            <p class="text-neonGreen font-bold text-xl">SBB</p>
+                                            <p class="text-gray-400 text-xs">S, B, B = 2 benar</p>
+                                        </div>
+                                    </div>
+                                    <div class="bg-neonGreen/10 p-3 rounded">
+                                        <p class="text-white">n(A) = <span class="text-neonGreen font-bold text-2xl">3</span> kejadian</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 3 -->
+                            <div class="step-box mb-4">
+                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 3: Hitung Peluang P(A)</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-gray-300 mb-2"><span class="text-neonYellow">Rumus:</span> P(A) = n(A) / n(S)</p>
+                                    <p class="text-gray-300 mb-3"><span class="text-neonYellow">Substitusi:</span></p>
+                                    <div class="bg-neonGreen/20 p-4 rounded border-2 border-neonGreen">
+                                        <p class="text-white text-xl">P(X=2) = n(A) / n(S)</p>
+                                        <p class="text-white text-xl mt-2">P(X=2) = 3 / 8</p>
+                                        <p class="text-neonGreen font-bold text-3xl mt-3">P(X=2) = 0.375 atau 37.5%</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Tabel Distribusi Lengkap -->
+                            <div class="mt-6 p-4 bg-black/30 rounded border border-neonYellow/30">
+                                <p class="text-neonYellow font-bold mb-3">📊 TABEL DISTRIBUSI LENGKAP:</p>
+                                <div class="overflow-x-auto">
+                                    <table class="w-full text-sm border border-neonGreen/50">
+                                        <thead>
+                                            <tr class="bg-neonGreen/20">
+                                                <th class="p-3 border border-neonGreen/30">X (Jumlah Benar)</th>
+                                                <th class="p-3 border border-neonGreen/30">0</th>
+                                                <th class="p-3 border border-neonGreen/30">1</th>
+                                                <th class="p-3 border border-neonGreen/30 bg-neonYellow/20">2</th>
+                                                <th class="p-3 border border-neonGreen/30">3</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody>
+                                            <tr>
+                                                <td class="p-3 border border-neonGreen/30 text-neonCyan">Kejadian</td>
+                                                <td class="p-3 border border-neonGreen/30 text-xs">SSS</td>
+                                                <td class="p-3 border border-neonGreen/30 text-xs">BSS, SBS, SSB</td>
+                                                <td class="p-3 border border-neonGreen/30 text-xs bg-neonYellow/10">BBS, BSB, SBB</td>
+                                                <td class="p-3 border border-neonGreen/30 text-xs">BBB</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="p-3 border border-neonGreen/30 text-neonCyan">n(A)</td>
+                                                <td class="p-3 border border-neonGreen/30">1</td>
+                                                <td class="p-3 border border-neonGreen/30">3</td>
+                                                <td class="p-3 border border-neonGreen/30 bg-neonYellow/10 font-bold">3</td>
+                                                <td class="p-3 border border-neonGreen/30">1</td>
+                                            </tr>
+                                            <tr>
+                                                <td class="p-3 border border-neonGreen/30 text-neonCyan">P(X)</td>
+                                                <td class="p-3 border border-neonGreen/30">1/8 = 0.125</td>
+                                                <td class="p-3 border border-neonGreen/30">3/8 = 0.375</td>
+                                                <td class="p-3 border border-neonGreen/30 bg-neonYellow/10 font-bold text-neonYellow">3/8 = 0.375</td>
+                                                <td class="p-3 border border-neonGreen/30">1/8 = 0.125</td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                                <p class="text-gray-500 text-sm mt-2">Total P(X) = 1/8 + 3/8 + 3/8 + 1/8 = 8/8 = 1 ✓</p>
+                            </div>
+                        </div>
+
+                        <!-- Cara Jelaskan ke Dosen -->
+                        <div class="how-to-explain mb-6">
+                            <p class="text-neonPink font-bold text-lg mb-3">🎤 CARA JELASKAN KE DOSEN:</p>
+                            <div class="bg-black/50 p-4 rounded text-gray-200">
+                                <p class="mb-3"><span class="text-neonYellow">"Bu Dini, untuk menghitung peluang tepat 2 benar:</span></p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 1:</span> Saya hitung dulu ruang sampelnya. Karena ada 3 soal dan masing-masing punya 2 pilihan B atau S, maka totalnya 2 pangkat 3 = 8 kemungkinan.</p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 2:</span> Dari 8 kemungkinan itu, saya cari yang tepat 2 benar. Ada 3 yaitu BBS, BSB, dan SBB.</p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 3:</span> Jadi peluangnya = 3 dibagi 8 = 0.375 atau 37.5%"</p>
+                            </div>
+                        </div>
+
+                        <!-- Latihan -->
+                        <details class="group mb-4">
+                            <summary class="cursor-pointer text-neonCyan hover:text-neonYellow transition flex items-center gap-2 p-3 bg-black/30 rounded">
+                                <span class="group-open:rotate-90 transition-transform">▶</span>
+                                <span>📝 LATIHAN SOAL VARIASI</span>
+                            </summary>
+                            <div class="mt-4 space-y-3">
+                                <div class="practice-item p-4 rounded bg-black/30">
+                                    <p class="text-neonGreen font-bold">Soal 2.1: Peluang SEMUA benar?</p>
+                                    <div class="mt-2 p-3 bg-neonGreen/10 rounded border border-neonGreen/30">
+                                        <p class="text-neonCyan font-bold">Jawaban:</p>
+                                        <p class="text-gray-300">Kejadian semua benar = BBB = 1 kejadian</p>
+                                        <p class="text-gray-300">P(X=3) = 1/8 = <span class="text-neonYellow font-bold">0.125 = 12.5%</span></p>
+                                    </div>
+                                </div>
+                                <div class="practice-item p-4 rounded bg-black/30">
+                                    <p class="text-neonGreen font-bold">Soal 2.2: Peluang PALING SEDIKIT 1 salah?</p>
+                                    <div class="mt-2 p-3 bg-neonGreen/10 rounded border border-neonGreen/30">
+                                        <p class="text-neonCyan font-bold">Jawaban:</p>
+                                        <p class="text-gray-300">"Paling sedikit 1 salah" = kebalikan dari "semua benar"</p>
+                                        <p class="text-gray-300">P(min 1 salah) = 1 - P(semua benar)</p>
+                                        <p class="text-gray-300">= 1 - 1/8 = <span class="text-neonYellow font-bold">7/8 = 0.875 = 87.5%</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </details>
+
+                        <button onclick="completeSection(2)" id="btn-2" class="w-full py-4 bg-neonGreen text-black font-bold rounded hover:bg-neonYellow transition text-lg">
+                            ✓ SAYA SUDAH PAHAM - UNLOCK MATERI 3
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ==================== MATERIAL 3: DISTRIBUSI NORMAL ==================== -->
+                <div id="material-3" class="material-card card-locked border-2 border-neonGreen rounded-lg bg-darkCard overflow-hidden exam-card">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-bold text-neonGreen flex items-center gap-3">
+                                <span class="w-10 h-10 rounded-full bg-neonGreen text-black flex items-center justify-center font-bold">3</span>
+                                DISTRIBUSI NORMAL (Z-SCORE)
+                            </h3>
+                            <span id="status-3" class="px-3 py-1 rounded text-xs bg-gray-600">TERKUNCI</span>
+                        </div>
+
+                        <!-- SOAL -->
+                        <div class="formula-box p-4 rounded mb-6">
+                            <p class="text-neonYellow font-bold mb-2">📌 SOAL:</p>
+                            <p class="text-white text-lg">Nilai ujian Statistika berdistribusi normal dengan rata-rata (μ) = 75 dan standar deviasi (σ) = 10. Dari 150 mahasiswa, berapa yang memiliki nilai antara <span class="text-neonCyan font-bold">70 sampai 90</span>?</p>
+                        </div>
+
+                        <!-- PENJELASAN SIMBOL -->
+                        <div class="symbol-explain mb-6">
+                            <p class="text-neonYellow font-bold mb-3">📖 PENJELASAN SIMBOL & CARA BACA:</p>
+                            <div class="grid md:grid-cols-2 gap-3 text-sm">
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">μ (mu)</p>
+                                    <p class="read-as">🔊 Dibaca: "mu" (huruf Yunani)</p>
+                                    <p class="text-gray-400">Artinya: Rata-rata (Mean) dari data</p>
+                                    <p class="text-neonYellow text-sm mt-1">Di soal ini μ = 75</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">σ (sigma)</p>
+                                    <p class="read-as">🔊 Dibaca: "sigma" (huruf Yunani)</p>
+                                    <p class="text-gray-400">Artinya: Standar Deviasi (simpangan baku)</p>
+                                    <p class="text-neonYellow text-sm mt-1">Di soal ini σ = 10</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">Z</p>
+                                    <p class="read-as">🔊 Dibaca: "zet" atau "z-score"</p>
+                                    <p class="text-gray-400">Artinya: Nilai standar (berapa SD dari mean)</p>
+                                    <p class="text-neonYellow text-sm mt-1">Hasil konversi nilai X</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">X</p>
+                                    <p class="read-as">🔊 Dibaca: "eks"</p>
+                                    <p class="text-gray-400">Artinya: Nilai yang ingin dicari peluangnya</p>
+                                    <p class="text-neonYellow text-sm mt-1">Di soal ini X = 70 dan X = 90</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RUMUS UTAMA -->
+                        <div class="p-4 bg-neonCyan/10 rounded border-2 border-neonCyan mb-6 text-center">
+                            <p class="text-neonCyan font-bold mb-2">📐 RUMUS Z-SCORE:</p>
+                            <p class="text-4xl font-bold text-white">Z = (X - μ) / σ</p>
+                            <p class="read-as mt-3">🔊 Dibaca: "Z sama dengan X minus mu, dibagi sigma"</p>
+                            <p class="text-gray-400 text-sm mt-2">Artinya: Z = (Nilai - Rata-rata) ÷ Standar Deviasi</p>
+                        </div>
+
+                        <!-- LANGKAH-LANGKAH -->
+                        <div class="bg-black/50 p-5 rounded border border-neonGreen/30 mb-6">
+                            <p class="text-neonGreen font-bold text-lg mb-4">✅ LANGKAH-LANGKAH PENGERJAAN:</p>
+                            
+                            <!-- Step 1 -->
+                            <div class="step-box mb-4">
+                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 1: Identifikasi Data yang Diketahui</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                        <div class="p-3 bg-neonGreen/10 rounded text-center">
+                                            <p class="text-gray-400 text-sm">Rata-rata</p>
+                                            <p class="text-neonYellow font-bold text-xl">μ = 75</p>
+                                        </div>
+                                        <div class="p-3 bg-neonGreen/10 rounded text-center">
+                                            <p class="text-gray-400 text-sm">Std Deviasi</p>
+                                            <p class="text-neonYellow font-bold text-xl">σ = 10</p>
+                                        </div>
+                                        <div class="p-3 bg-neonGreen/10 rounded text-center">
+                                            <p class="text-gray-400 text-sm">Batas Bawah</p>
+                                            <p class="text-neonYellow font-bold text-xl">X₁ = 70</p>
+                                        </div>
+                                        <div class="p-3 bg-neonGreen/10 rounded text-center">
+                                            <p class="text-gray-400 text-sm">Batas Atas</p>
+                                            <p class="text-neonYellow font-bold text-xl">X₂ = 90</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 2 -->
+                            <div class="step-box mb-4">
+                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 2: Hitung Z₁ untuk X = 70</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-gray-300 mb-2"><span class="text-neonYellow">Rumus:</span> Z₁ = (X₁ - μ) / σ</p>
+                                    <p class="text-gray-300 mb-2"><span class="text-neonYellow">Substitusi:</span> Z₁ = (70 - 75) / 10</p>
+                                    <p class="text-gray-300 mb-2"><span class="text-neonYellow">Hitung pembilang:</span> 70 - 75 = -5</p>
+                                    <p class="text-gray-300 mb-2"><span class="text-neonYellow">Hitung hasil:</span> -5 / 10 = -0.5</p>
+                                    <div class="bg-neonGreen/10 p-3 rounded mt-3">
+                                        <p class="text-white text-xl">Z₁ = <span class="text-neonGreen font-bold text-2xl">-0.5</span></p>
+                                        <p class="text-gray-500 text-sm mt-1">Artinya: nilai 70 berada 0.5 SD di BAWAH rata-rata</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 3 -->
+                            <div class="step-box mb-4">
+                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 3: Hitung Z₂ untuk X = 90</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-gray-300 mb-2"><span class="text-neonYellow">Rumus:</span> Z₂ = (X₂ - μ) / σ</p>
+                                    <p class="text-gray-300 mb-2"><span class="text-neonYellow">Substitusi:</span> Z₂ = (90 - 75) / 10</p>
+                                    <p class="text-gray-300 mb-2"><span class="text-neonYellow">Hitung pembilang:</span> 90 - 75 = 15</p>
+                                    <p class="text-gray-300 mb-2"><span class="text-neonYellow">Hitung hasil:</span> 15 / 10 = 1.5</p>
+                                    <div class="bg-neonGreen/10 p-3 rounded mt-3">
+                                        <p class="text-white text-xl">Z₂ = <span class="text-neonGreen font-bold text-2xl">1.5</span></p>
+                                        <p class="text-gray-500 text-sm mt-1">Artinya: nilai 90 berada 1.5 SD di ATAS rata-rata</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 4 -->
+                            <div class="step-box mb-4">
+                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 4: Lihat Tabel Z (Tabel Distribusi Normal)</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonYellow font-bold mb-3">📊 Cara Baca Tabel Z:</p>
+                                    <p class="text-gray-300 mb-2">• Tabel Z memberikan luas area dari -∞ sampai nilai Z</p>
+                                    <p class="text-gray-300 mb-3">• Cari nilai Z di tabel, baca peluangnya</p>
+                                    
+                                    <div class="grid md:grid-cols-2 gap-4">
+                                        <div class="p-3 bg-red-900/20 rounded border border-red-500/30">
+                                            <p class="text-red-400 font-bold">Untuk Z₁ = -0.5</p>
+                                            <p class="text-gray-300 mt-2">Lihat tabel baris -0.5, kolom 0.00</p>
+                                            <p class="text-neonYellow font-bold text-xl mt-2">Φ(-0.5) = 0.3085</p>
+                                            <p class="text-gray-500 text-sm">Area dari -∞ sampai Z=-0.5</p>
+                                        </div>
+                                        <div class="p-3 bg-green-900/20 rounded border border-green-500/30">
+                                            <p class="text-green-400 font-bold">Untuk Z₂ = 1.5</p>
+                                            <p class="text-gray-300 mt-2">Lihat tabel baris 1.5, kolom 0.00</p>
+                                            <p class="text-neonYellow font-bold text-xl mt-2">Φ(1.5) = 0.9332</p>
+                                            <p class="text-gray-500 text-sm">Area dari -∞ sampai Z=1.5</p>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="mt-4 p-3 bg-neonYellow/10 rounded border border-neonYellow/50">
+                                        <p class="text-neonYellow font-bold">💡 TIPS HAFALAN TABEL Z:</p>
+                                        <p class="text-gray-300 text-sm">Z = -0.5 → 0.3085 (ingat: 30-85)</p>
+                                        <p class="text-gray-300 text-sm">Z = 1.5 → 0.9332 (ingat: 93-32)</p>
+                                        <p class="text-gray-300 text-sm">Z = 1.0 → 0.8413 (ingat: 84-13)</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 5 -->
+                            <div class="step-box mb-4">
+                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 5: Hitung Peluang P(70 < X < 90)</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-gray-300 mb-2"><span class="text-neonYellow">Logika:</span> Untuk mencari area ANTARA dua nilai Z, kita kurangi:</p>
+                                    <p class="text-gray-300 mb-2"><span class="text-neonYellow">Rumus:</span> P(70 < X < 90) = Φ(Z₂) - Φ(Z₁)</p>
+                                    <p class="text-gray-300 mb-2"><span class="text-neonYellow">Substitusi:</span> P = Φ(1.5) - Φ(-0.5)</p>
+                                    <p class="text-gray-300 mb-2"><span class="text-neonYellow">Hitung:</span> P = 0.9332 - 0.3085</p>
+                                    <div class="bg-neonGreen/20 p-4 rounded mt-3 border-2 border-neonGreen">
+                                        <p class="text-white text-xl">P(70 < X < 90) = <span class="text-neonGreen font-bold text-3xl">0.6247</span></p>
+                                        <p class="text-gray-400 mt-2">Artinya: 62.47% mahasiswa nilainya antara 70-90</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 6 -->
+                            <div class="step-box">
+                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 6: Hitung Jumlah Mahasiswa</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-gray-300 mb-2"><span class="text-neonYellow">Diketahui:</span> Total mahasiswa = 150 orang</p>
+                                    <p class="text-gray-300 mb-2"><span class="text-neonYellow">Rumus:</span> Jumlah = Total × Peluang</p>
+                                    <p class="text-gray-300 mb-2"><span class="text-neonYellow">Hitung:</span> Jumlah = 150 × 0.6247</p>
+                                    <div class="bg-neonGreen/20 p-4 rounded mt-3 border-2 border-neonGreen">
+                                        <p class="text-white text-xl">Jumlah = <span class="text-neonGreen font-bold text-3xl">93.7 ≈ 94 mahasiswa</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cara Jelaskan ke Dosen -->
+                        <div class="how-to-explain mb-6">
+                            <p class="text-neonPink font-bold text-lg mb-3">🎤 CARA JELASKAN KE DOSEN:</p>
+                            <div class="bg-black/50 p-4 rounded text-gray-200">
+                                <p class="mb-3"><span class="text-neonYellow">"Bu Dini, untuk mencari mahasiswa dengan nilai 70-90:</span></p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 1:</span> Saya konversi dulu nilai 70 ke Z-score. Z₁ = (70-75)/10 = -0.5</p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 2:</span> Konversi juga nilai 90 ke Z-score. Z₂ = (90-75)/10 = 1.5</p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 3:</span> Dari tabel Z, Φ(-0.5) = 0.3085 dan Φ(1.5) = 0.9332</p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 4:</span> Peluang = 0.9332 - 0.3085 = 0.6247 atau 62.47%</p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 5:</span> Jumlah mahasiswa = 150 × 0.6247 = 94 mahasiswa"</p>
+                            </div>
+                        </div>
+
+                        <!-- Latihan -->
+                        <details class="group mb-4">
+                            <summary class="cursor-pointer text-neonCyan hover:text-neonYellow transition flex items-center gap-2 p-3 bg-black/30 rounded">
+                                <span class="group-open:rotate-90 transition-transform">▶</span>
+                                <span>📝 LATIHAN SOAL VARIASI</span>
+                            </summary>
+                            <div class="mt-4 space-y-4">
+                                <div class="practice-item p-4 rounded bg-black/30">
+                                    <p class="text-neonGreen font-bold">Soal 3.1: Lampu masa pakai μ=800 jam, σ=40 jam. Peluang mati < 750 jam?</p>
+                                    <div class="mt-3 p-3 bg-neonGreen/10 rounded border border-neonGreen/30">
+                                        <p class="text-neonCyan font-bold">Langkah:</p>
+                                        <p class="text-gray-300">Z = (750-800)/40 = -50/40 = <span class="text-neonYellow">-1.25</span></p>
+                                        <p class="text-gray-300">Dari tabel: Φ(-1.25) = <span class="text-neonYellow">0.1056</span></p>
+                                        <p class="text-gray-300">Jadi peluang = <span class="text-neonGreen font-bold">10.56%</span></p>
+                                    </div>
+                                </div>
+                                <div class="practice-item p-4 rounded bg-black/30">
+                                    <p class="text-neonGreen font-bold">Soal 3.2: Tinggi badan μ=165cm, Variansi=25cm². Peluang tinggi > 170cm?</p>
+                                    <div class="mt-3 p-3 bg-neonGreen/10 rounded border border-neonGreen/30">
+                                        <p class="text-neonCyan font-bold">Langkah:</p>
+                                        <p class="text-gray-300">⚠️ Hati-hati: Variansi = σ². Jadi σ = √25 = <span class="text-neonYellow">5</span></p>
+                                        <p class="text-gray-300">Z = (170-165)/5 = 5/5 = <span class="text-neonYellow">1.0</span></p>
+                                        <p class="text-gray-300">Dari tabel: Φ(1.0) = 0.8413</p>
+                                        <p class="text-gray-300">P(X > 170) = 1 - 0.8413 = <span class="text-neonGreen font-bold">0.1587 = 15.87%</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </details>
+
+                        <button onclick="completeSection(3)" id="btn-3" class="w-full py-4 bg-neonGreen text-black font-bold rounded hover:bg-neonYellow transition text-lg">
+                            ✓ SAYA SUDAH PAHAM - UNLOCK MATERI 4
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ==================== MATERIAL 4: DISTRIBUSI BINOMIAL ==================== -->
+                <div id="material-4" class="material-card card-locked border-2 border-neonGreen rounded-lg bg-darkCard overflow-hidden exam-card">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-bold text-neonGreen flex items-center gap-3">
+                                <span class="w-10 h-10 rounded-full bg-neonGreen text-black flex items-center justify-center font-bold">4</span>
+                                DISTRIBUSI BINOMIAL (x=0)
+                            </h3>
+                            <span id="status-4" class="px-3 py-1 rounded text-xs bg-gray-600">TERKUNCI</span>
+                        </div>
+
+                        <!-- SOAL -->
+                        <div class="formula-box p-4 rounded mb-6">
+                            <p class="text-neonYellow font-bold mb-2">📌 SOAL:</p>
+                            <p class="text-white text-lg">Peluang pasien mengidap penyakit Anemia adalah 20%. Jika dokter memeriksa 5 pasien secara acak, berapa peluang <span class="text-neonCyan font-bold">TIDAK ADA SATUPUN</span> yang mengidap Anemia (x=0)?</p>
+                        </div>
+
+                        <!-- PENJELASAN SIMBOL -->
+                        <div class="symbol-explain mb-6">
+                            <p class="text-neonYellow font-bold mb-3">📖 PENJELASAN SIMBOL & CARA BACA:</p>
+                            <div class="grid md:grid-cols-2 gap-3 text-sm">
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">n</p>
+                                    <p class="read-as">🔊 Dibaca: "en"</p>
+                                    <p class="text-gray-400">Artinya: Jumlah percobaan/sampel</p>
+                                    <p class="text-neonYellow text-sm mt-1">Di soal ini n = 5 (5 pasien)</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">x</p>
+                                    <p class="read-as">🔊 Dibaca: "eks"</p>
+                                    <p class="text-gray-400">Artinya: Jumlah "sukses" yang diinginkan</p>
+                                    <p class="text-neonYellow text-sm mt-1">Di soal ini x = 0 (tidak ada yang sakit)</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">p</p>
+                                    <p class="read-as">🔊 Dibaca: "pe"</p>
+                                    <p class="text-gray-400">Artinya: Peluang "sukses" dalam 1 percobaan</p>
+                                    <p class="text-neonYellow text-sm mt-1">Di soal ini p = 0.2 (20% sakit)</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">q = 1 - p</p>
+                                    <p class="read-as">🔊 Dibaca: "ku sama dengan satu minus pe"</p>
+                                    <p class="text-gray-400">Artinya: Peluang "gagal" (kebalikan sukses)</p>
+                                    <p class="text-neonYellow text-sm mt-1">Di soal ini q = 1 - 0.2 = 0.8 (tidak sakit)</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">C(n,x) atau ⁿCₓ</p>
+                                    <p class="read-as">🔊 Dibaca: "C n x" atau "kombinasi n ambil x"</p>
+                                    <p class="text-gray-400">Artinya: Banyaknya cara memilih x dari n</p>
+                                    <p class="text-neonYellow text-sm mt-1">Rumus: n! / (x! × (n-x)!)</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">pˣ</p>
+                                    <p class="read-as">🔊 Dibaca: "p pangkat x"</p>
+                                    <p class="text-gray-400">Artinya: p dikali dengan dirinya sebanyak x kali</p>
+                                    <p class="text-neonYellow text-sm mt-1">Contoh: p² = p × p</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RUMUS UTAMA -->
+                        <div class="p-4 bg-neonCyan/10 rounded border-2 border-neonCyan mb-6">
+                            <p class="text-neonCyan font-bold mb-2 text-center">📐 RUMUS DISTRIBUSI BINOMIAL:</p>
+                            <p class="text-3xl font-bold text-white text-center">P(X=x) = C(n,x) × pˣ × qⁿ⁻ˣ</p>
+                            <p class="read-as mt-3 text-center">🔊 Dibaca: "Peluang X sama dengan x, sama dengan C n x, dikali p pangkat x, dikali q pangkat n minus x"</p>
+                            
+                            <div class="mt-4 p-3 bg-neonYellow/10 rounded border border-neonYellow">
+                                <p class="text-neonYellow font-bold text-center">⚡ RUMUS KHUSUS untuk x = 0:</p>
+                                <p class="text-2xl font-bold text-white text-center mt-2">P(X=0) = qⁿ</p>
+                                <p class="read-as text-center mt-2">🔊 Dibaca: "Peluang X sama dengan nol, sama dengan q pangkat n"</p>
+                                <p class="text-gray-400 text-sm text-center mt-2">Kenapa? Karena C(n,0)=1 dan p⁰=1, jadi tersisa qⁿ saja!</p>
+                            </div>
+                        </div>
+
+                        <!-- LANGKAH-LANGKAH -->
+                        <div class="bg-black/50 p-5 rounded border border-neonGreen/30 mb-6">
+                            <p class="text-neonGreen font-bold text-lg mb-4">✅ LANGKAH-LANGKAH PENGERJAAN:</p>
+                            
+                            <!-- Step 1 -->
+                            <div class="step-box mb-4">
+                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 1: Identifikasi Data</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-gray-300 mb-3">Dari soal, kita identifikasi:</p>
+                                    <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                                        <div class="p-3 bg-neonGreen/10 rounded text-center">
+                                            <p class="text-gray-400 text-sm">Jumlah sampel</p>
+                                            <p class="text-neonYellow font-bold text-2xl">n = 5</p>
+                                            <p class="text-gray-500 text-xs">5 pasien diperiksa</p>
+                                        </div>
+                                        <div class="p-3 bg-neonGreen/10 rounded text-center">
+                                            <p class="text-gray-400 text-sm">Yang dicari</p>
+                                            <p class="text-neonYellow font-bold text-2xl">x = 0</p>
+                                            <p class="text-gray-500 text-xs">Tidak ada yang sakit</p>
+                                        </div>
+                                        <div class="p-3 bg-neonGreen/10 rounded text-center">
+                                            <p class="text-gray-400 text-sm">Peluang sakit</p>
+                                            <p class="text-neonYellow font-bold text-2xl">p = 0.2</p>
+                                            <p class="text-gray-500 text-xs">20% = 20/100 = 0.2</p>
+                                        </div>
+                                        <div class="p-3 bg-neonGreen/10 rounded text-center">
+                                            <p class="text-gray-400 text-sm">Peluang sehat</p>
+                                            <p class="text-neonYellow font-bold text-2xl">q = 0.8</p>
+                                            <p class="text-gray-500 text-xs">1 - 0.2 = 0.8</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 2 -->
+                            <div class="step-box mb-4">
+                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 2: Pilih Rumus yang Tepat</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-gray-300 mb-2">Karena x = 0, kita pakai rumus sederhana:</p>
+                                    <div class="bg-neonGreen/10 p-3 rounded text-center">
+                                        <p class="text-white text-xl">P(X=0) = qⁿ = q<sup>n</sup></p>
+                                    </div>
+                                    <p class="text-gray-500 text-sm mt-3">💡 Ingat: Jika x=0, rumusnya jadi sangat sederhana! Hanya q pangkat n.</p>
+                                </div>
+                            </div>
+
+                            <!-- Step 3 -->
+                            <div class="step-box mb-4">
+                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 3: Substitusi Nilai</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-gray-300 mb-2"><span class="text-neonYellow">Rumus:</span> P(X=0) = qⁿ</p>
+                                    <p class="text-gray-300 mb-2"><span class="text-neonYellow">Substitusi:</span> P(X=0) = (0.8)⁵</p>
+                                    <p class="text-gray-300 mb-2"><span class="text-neonYellow">Artinya:</span> 0.8 dipangkatkan 5</p>
+                                </div>
+                            </div>
+
+                            <!-- Step 4 -->
+                            <div class="step-box mb-4">
+                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 4: Hitung dengan Kalkulator</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonYellow font-bold mb-3">🔢 CARA DI KALKULATOR CASIO fx-85MS:</p>
+                                    <div class="bg-neonYellow/10 p-4 rounded border border-neonYellow mb-4">
+                                        <p class="text-white mb-2">Ketik urutan tombol:</p>
+                                        <p class="text-2xl font-bold text-neonGreen">0.8 → x<sup>y</sup> → 5 → =</p>
+                                        <p class="text-gray-400 text-sm mt-2">Tombol x<sup>y</sup> biasanya ada tulisan "^" atau "x□"</p>
+                                    </div>
+                                    
+                                    <p class="text-neonYellow font-bold mb-2">📝 CARA MANUAL (Tanpa Kalkulator):</p>
+                                    <div class="space-y-2 text-gray-300">
+                                        <p>• 0.8¹ = 0.8</p>
+                                        <p>• 0.8² = 0.8 × 0.8 = 0.64</p>
+                                        <p>• 0.8³ = 0.64 × 0.8 = 0.512</p>
+                                        <p>• 0.8⁴ = 0.512 × 0.8 = 0.4096</p>
+                                        <p>• 0.8⁵ = 0.4096 × 0.8 = <span class="text-neonGreen font-bold">0.32768</span></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 5: HASIL -->
+                            <div class="step-box">
+                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 5: Tulis Kesimpulan</p>
+                                <div class="p-4 bg-neonGreen/20 rounded border-2 border-neonGreen">
+                                    <p class="text-white text-xl mb-2">P(X=0) = (0.8)⁵</p>
+                                    <p class="text-neonGreen font-bold text-4xl">= 0.32768</p>
+                                    <p class="text-neonYellow font-bold text-xl mt-3">= 32.768% ≈ 32.77%</p>
+                                    <p class="text-gray-400 mt-3">Artinya: Ada peluang sekitar 32.77% bahwa dari 5 pasien yang diperiksa, tidak ada satupun yang mengidap Anemia.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cara Jelaskan ke Dosen -->
+                        <div class="how-to-explain mb-6">
+                            <p class="text-neonPink font-bold text-lg mb-3">🎤 CARA JELASKAN KE DOSEN:</p>
+                            <div class="bg-black/50 p-4 rounded text-gray-200">
+                                <p class="mb-3"><span class="text-neonYellow">"Bu Dini, untuk menghitung peluang tidak ada pasien yang sakit:</span></p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 1:</span> Saya identifikasi dulu datanya. n=5 pasien, x=0 (tidak ada yang sakit), p=0.2 (peluang sakit), q=0.8 (peluang sehat).</p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 2:</span> Karena x=0, rumusnya jadi sederhana: P(X=0) = q pangkat n.</p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 3:</span> Saya substitusi: P(X=0) = 0.8 pangkat 5.</p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 4:</span> Saya hitung di kalkulator: 0.8^5 = 0.32768</p>
+                                <p class="mb-2"><span class="text-neonCyan">Kesimpulan:</span> Jadi peluangnya adalah 0.32768 atau sekitar 32.77%."</p>
+                            </div>
+                        </div>
+
+                        <!-- Latihan -->
+                        <details class="group mb-4">
+                            <summary class="cursor-pointer text-neonCyan hover:text-neonYellow transition flex items-center gap-2 p-3 bg-black/30 rounded">
+                                <span class="group-open:rotate-90 transition-transform">▶</span>
+                                <span>📝 LATIHAN SOAL VARIASI</span>
+                            </summary>
+                            <div class="mt-4 space-y-4">
+                                <div class="practice-item p-4 rounded bg-black/30">
+                                    <p class="text-neonGreen font-bold">Soal 4.1: Mesin cacat 5%, sampel 10 produk. Peluang SEMUA baik?</p>
+                                    <div class="mt-3 p-3 bg-neonGreen/10 rounded border border-neonGreen/30">
+                                        <p class="text-neonCyan font-bold">Langkah:</p>
+                                        <p class="text-gray-300">• p (cacat) = 0.05, maka q (baik) = 1 - 0.05 = <span class="text-neonYellow">0.95</span></p>
+                                        <p class="text-gray-300">• n = 10, x = 0 (tidak ada yang cacat)</p>
+                                        <p class="text-gray-300">• P(X=0) = q^n = (0.95)^10</p>
+                                        <p class="text-gray-300">• Ketik di kalkulator: 0.95 ^ 10 = <span class="text-neonGreen font-bold">0.5987</span></p>
+                                        <p class="text-neonYellow mt-2">Jadi peluang semua produk baik = 59.87%</p>
+                                    </div>
+                                </div>
+                                <div class="practice-item p-4 rounded bg-black/30">
+                                    <p class="text-neonGreen font-bold">Soal 4.2: Mahasiswa terlambat 10%, 6 mahasiswa diamati. Tidak ada yg terlambat?</p>
+                                    <div class="mt-3 p-3 bg-neonGreen/10 rounded border border-neonGreen/30">
+                                        <p class="text-neonCyan font-bold">Langkah:</p>
+                                        <p class="text-gray-300">• p (terlambat) = 0.1, maka q (tepat waktu) = <span class="text-neonYellow">0.9</span></p>
+                                        <p class="text-gray-300">• n = 6, x = 0</p>
+                                        <p class="text-gray-300">• P(X=0) = (0.9)^6</p>
+                                        <p class="text-gray-300">• Ketik: 0.9 ^ 6 = <span class="text-neonGreen font-bold">0.531441</span></p>
+                                        <p class="text-neonYellow mt-2">Jadi peluang tidak ada yang terlambat = 53.14%</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </details>
+
+                        <button onclick="completeSection(4)" id="btn-4" class="w-full py-4 bg-neonGreen text-black font-bold rounded hover:bg-neonYellow transition text-lg">
+                            ✓ SAYA SUDAH PAHAM - UNLOCK MATERI 5
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ==================== MATERIAL 5: PROBABILITAS BERSYARAT (BAYES) ==================== -->
+                <div id="material-5" class="material-card card-locked border-2 border-neonPink rounded-lg bg-darkCard overflow-hidden exam-card">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-bold text-neonPink flex items-center gap-3">
+                                <span class="w-10 h-10 rounded-full bg-neonPink text-black flex items-center justify-center font-bold">5</span>
+                                PROBABILITAS BERSYARAT (TEOREMA BAYES)
+                            </h3>
+                            <span class="px-3 py-1 rounded text-xs bg-red-600 animate-pulse">⚠️ PENTING!</span>
+                            <span id="status-5" class="px-3 py-1 rounded text-xs bg-gray-600">TERKUNCI</span>
+                        </div>
+
+                        <!-- SOAL -->
+                        <div class="formula-box p-4 rounded mb-6" style="border-left-color: #FF00FF;">
+                            <p class="text-neonYellow font-bold mb-2">📌 SOAL (KASUS SPAREPART/MESIN):</p>
+                            <div class="text-white text-lg space-y-2">
+                                <p>Sebuah pabrik memiliki 2 mesin:</p>
+                                <p>• <span class="text-neonCyan font-bold">Mesin A</span>: Memproduksi <span class="text-neonYellow">60%</span> barang, dengan tingkat kerusakan <span class="text-neonYellow">2%</span></p>
+                                <p>• <span class="text-neonPink font-bold">Mesin B</span>: Memproduksi <span class="text-neonYellow">40%</span> barang, dengan tingkat kerusakan <span class="text-neonYellow">5%</span></p>
+                                <p class="mt-3 text-neonCyan">Jika sebuah barang diambil secara acak dan ternyata <span class="font-bold text-red-400">RUSAK</span>, berapa peluang barang tersebut berasal dari <span class="font-bold text-neonPink">Mesin B</span>?</p>
+                            </div>
+                        </div>
+
+                        <!-- PENJELASAN SIMBOL -->
+                        <div class="symbol-explain mb-6">
+                            <p class="text-neonYellow font-bold mb-3">📖 PENJELASAN SIMBOL & CARA BACA:</p>
+                            <div class="grid md:grid-cols-2 gap-3 text-sm">
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">P(A)</p>
+                                    <p class="read-as">🔊 Dibaca: "P A" atau "Peluang A"</p>
+                                    <p class="text-gray-400">Artinya: Peluang barang dari Mesin A</p>
+                                    <p class="text-neonYellow text-sm mt-1">Di soal: P(A) = 0.60 (60%)</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">P(B)</p>
+                                    <p class="read-as">🔊 Dibaca: "P B" atau "Peluang B"</p>
+                                    <p class="text-gray-400">Artinya: Peluang barang dari Mesin B</p>
+                                    <p class="text-neonYellow text-sm mt-1">Di soal: P(B) = 0.40 (40%)</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">P(R|A)</p>
+                                    <p class="read-as">🔊 Dibaca: "P R given A" atau "Peluang Rusak JIKA dari A"</p>
+                                    <p class="text-gray-400">Artinya: Peluang rusak, DENGAN SYARAT dari Mesin A</p>
+                                    <p class="text-neonYellow text-sm mt-1">Di soal: P(R|A) = 0.02 (2%)</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">P(R|B)</p>
+                                    <p class="read-as">🔊 Dibaca: "P R given B" atau "Peluang Rusak JIKA dari B"</p>
+                                    <p class="text-gray-400">Artinya: Peluang rusak, DENGAN SYARAT dari Mesin B</p>
+                                    <p class="text-neonYellow text-sm mt-1">Di soal: P(R|B) = 0.05 (5%)</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded md:col-span-2">
+                                    <p class="text-neonPink font-bold text-xl">P(B|R) → INI YANG DICARI!</p>
+                                    <p class="read-as">🔊 Dibaca: "P B given R" atau "Peluang dari B JIKA Rusak"</p>
+                                    <p class="text-gray-400">Artinya: Peluang barang dari Mesin B, DENGAN SYARAT barang itu rusak</p>
+                                    <p class="text-neonYellow text-sm mt-1">Ini pertanyaan kebalikan! Kita tahu barang RUSAK, lalu tanya dari mana asalnya.</p>
+                                </div>
+                            </div>
+                            
+                            <div class="mt-4 p-3 bg-neonPink/10 rounded border border-neonPink">
+                                <p class="text-neonPink font-bold">⚠️ PERHATIKAN SIMBOL "|" (GARIS VERTIKAL):</p>
+                                <p class="text-gray-300 mt-2">• Simbol "|" dibaca <span class="text-neonYellow">"given"</span> atau <span class="text-neonYellow">"jika"</span> atau <span class="text-neonYellow">"dengan syarat"</span></p>
+                                <p class="text-gray-300">• P(A|B) artinya: Peluang A terjadi, <span class="text-neonCyan">JIKA B sudah terjadi</span></p>
+                                <p class="text-gray-300">• Posisi penting! P(A|B) ≠ P(B|A)</p>
+                            </div>
+                        </div>
+
+                        <!-- RUMUS UTAMA -->
+                        <div class="p-4 bg-neonPink/10 rounded border-2 border-neonPink mb-6">
+                            <p class="text-neonPink font-bold mb-3 text-center text-xl">📐 RUMUS TEOREMA BAYES:</p>
+                            <div class="bg-black/50 p-4 rounded text-center">
+                                <p class="text-2xl md:text-3xl font-bold text-white">P(B|R) = P(B) × P(R|B)</p>
+                                <p class="text-2xl md:text-3xl font-bold text-white mt-2">─────────────────</p>
+                                <p class="text-2xl md:text-3xl font-bold text-white">P(R)</p>
+                            </div>
+                            <p class="read-as mt-4 text-center">🔊 Dibaca: "Peluang B given R sama dengan P B dikali P R given B, dibagi P R total"</p>
+                            
+                            <div class="mt-4 p-3 bg-neonYellow/10 rounded border border-neonYellow">
+                                <p class="text-neonYellow font-bold">📐 RUMUS P(R) TOTAL:</p>
+                                <p class="text-white text-center text-xl mt-2">P(R) = P(A) × P(R|A) + P(B) × P(R|B)</p>
+                                <p class="read-as text-center mt-2">🔊 Dibaca: "P R total sama dengan P A dikali P R given A, ditambah P B dikali P R given B"</p>
+                                <p class="text-gray-400 text-sm text-center mt-2">Ini adalah TOTAL peluang rusak dari SEMUA mesin</p>
+                            </div>
+                        </div>
+
+                        <!-- LANGKAH-LANGKAH -->
+                        <div class="bg-black/50 p-5 rounded border border-neonPink/30 mb-6">
+                            <p class="text-neonPink font-bold text-lg mb-4">✅ LANGKAH-LANGKAH PENGERJAAN:</p>
+                            
+                            <!-- Step 1 -->
+                            <div class="step-box mb-4" style="border-left-color: #FF00FF;">
+                                <p class="text-neonPink font-bold text-lg mb-2">📍 LANGKAH 1: Identifikasi & Tulis Semua Data</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-gray-300 mb-3">Dari soal, kita tulis semua yang diketahui:</p>
+                                    <div class="grid md:grid-cols-2 gap-4">
+                                        <div class="p-3 bg-blue-900/20 rounded border border-blue-500/30">
+                                            <p class="text-blue-400 font-bold text-lg mb-2">🔵 MESIN A:</p>
+                                            <p class="text-gray-300">• P(A) = 60% = <span class="text-neonYellow font-bold">0.60</span></p>
+                                            <p class="text-gray-500 text-sm">↳ 60% produksi dari Mesin A</p>
+                                            <p class="text-gray-300 mt-2">• P(R|A) = 2% = <span class="text-neonYellow font-bold">0.02</span></p>
+                                            <p class="text-gray-500 text-sm">↳ 2% dari produk A itu rusak</p>
+                                        </div>
+                                        <div class="p-3 bg-pink-900/20 rounded border border-pink-500/30">
+                                            <p class="text-pink-400 font-bold text-lg mb-2">🔴 MESIN B:</p>
+                                            <p class="text-gray-300">• P(B) = 40% = <span class="text-neonYellow font-bold">0.40</span></p>
+                                            <p class="text-gray-500 text-sm">↳ 40% produksi dari Mesin B</p>
+                                            <p class="text-gray-300 mt-2">• P(R|B) = 5% = <span class="text-neonYellow font-bold">0.05</span></p>
+                                            <p class="text-gray-500 text-sm">↳ 5% dari produk B itu rusak</p>
+                                        </div>
+                                    </div>
+                                    <div class="mt-4 p-3 bg-neonPink/10 rounded text-center">
+                                        <p class="text-neonPink font-bold">YANG DITANYA: P(B|R) = ?</p>
+                                        <p class="text-gray-400 text-sm">Jika barang RUSAK, peluang dari Mesin B?</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 2 -->
+                            <div class="step-box mb-4" style="border-left-color: #FF00FF;">
+                                <p class="text-neonPink font-bold text-lg mb-2">📍 LANGKAH 2: Hitung P(R) Total</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonYellow font-bold mb-2">Rumus:</p>
+                                    <p class="text-white text-lg mb-3">P(R) = P(A) × P(R|A) + P(B) × P(R|B)</p>
+                                    
+                                    <p class="text-neonYellow font-bold mb-2">Substitusi nilai:</p>
+                                    <p class="text-gray-300">P(R) = (0.60 × 0.02) + (0.40 × 0.05)</p>
+                                    
+                                    <p class="text-neonYellow font-bold mb-2 mt-3">Hitung bagian pertama (dari Mesin A):</p>
+                                    <p class="text-gray-300">0.60 × 0.02 = <span class="text-neonCyan font-bold">0.012</span></p>
+                                    <p class="text-gray-500 text-sm">Di kalkulator: 0.60 × 0.02 = 0.012</p>
+                                    
+                                    <p class="text-neonYellow font-bold mb-2 mt-3">Hitung bagian kedua (dari Mesin B):</p>
+                                    <p class="text-gray-300">0.40 × 0.05 = <span class="text-neonCyan font-bold">0.020</span></p>
+                                    <p class="text-gray-500 text-sm">Di kalkulator: 0.40 × 0.05 = 0.02</p>
+                                    
+                                    <p class="text-neonYellow font-bold mb-2 mt-3">Jumlahkan:</p>
+                                    <p class="text-gray-300">P(R) = 0.012 + 0.020</p>
+                                    <div class="bg-neonGreen/10 p-3 rounded mt-2">
+                                        <p class="text-white text-xl">P(R) = <span class="text-neonGreen font-bold text-2xl">0.032</span></p>
+                                        <p class="text-gray-500 text-sm mt-1">Artinya: 3.2% dari SEMUA barang itu rusak</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 3 -->
+                            <div class="step-box mb-4" style="border-left-color: #FF00FF;">
+                                <p class="text-neonPink font-bold text-lg mb-2">📍 LANGKAH 3: Hitung P(B|R) dengan Rumus Bayes</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonYellow font-bold mb-2">Rumus Bayes:</p>
+                                    <p class="text-white text-lg mb-3">P(B|R) = [P(B) × P(R|B)] / P(R)</p>
+                                    
+                                    <p class="text-neonYellow font-bold mb-2">Substitusi nilai:</p>
+                                    <p class="text-gray-300 mb-1">• Pembilang: P(B) × P(R|B) = 0.40 × 0.05 = <span class="text-neonCyan">0.020</span></p>
+                                    <p class="text-gray-300 mb-3">• Penyebut: P(R) = <span class="text-neonCyan">0.032</span></p>
+                                    
+                                    <p class="text-neonYellow font-bold mb-2">Hitung pembagian:</p>
+                                    <p class="text-gray-300 mb-2">P(B|R) = 0.020 / 0.032</p>
+                                    
+                                    <div class="bg-neonYellow/10 p-3 rounded border border-neonYellow mb-3">
+                                        <p class="text-neonYellow font-bold">🔢 CARA DI KALKULATOR:</p>
+                                        <p class="text-white">Ketik: 0.02 ÷ 0.032 = <span class="text-neonGreen font-bold">0.625</span></p>
+                                        <p class="text-gray-400 text-sm mt-1">atau: 20 ÷ 32 = 0.625 (jika pakai angka bulat)</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- HASIL AKHIR -->
+                            <div class="step-box" style="border-left-color: #FF00FF;">
+                                <p class="text-neonPink font-bold text-lg mb-2">📍 LANGKAH 4: Tulis Kesimpulan</p>
+                                <div class="p-4 bg-neonPink/20 rounded border-2 border-neonPink">
+                                    <p class="text-white text-xl mb-2">P(B|R) = 0.020 / 0.032</p>
+                                    <p class="text-neonPink font-bold text-4xl">= 0.625</p>
+                                    <p class="text-neonYellow font-bold text-xl mt-3">= 62.5%</p>
+                                    <p class="text-gray-300 mt-4">✅ <span class="font-bold">Kesimpulan:</span> Jika sebuah barang diambil dan ternyata RUSAK, maka peluang barang tersebut berasal dari Mesin B adalah <span class="text-neonPink font-bold">62.5%</span></p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- DIAGRAM POHON (Opsional) -->
+                        <details class="group mb-4">
+                            <summary class="cursor-pointer text-neonCyan hover:text-neonYellow transition flex items-center gap-2 p-3 bg-black/30 rounded">
+                                <span class="group-open:rotate-90 transition-transform">▶</span>
+                                <span>🌳 LIHAT DIAGRAM POHON PROBABILITAS</span>
+                            </summary>
+                            <div class="mt-4 p-4 bg-black/30 rounded border border-neonGreen/30">
+                                <pre class="text-xs md:text-sm overflow-x-auto text-gray-300">
+                                         ┌── Rusak (0.02) → P(A ∩ R) = 0.60 × 0.02 = 0.012
+                    ┌── Mesin A (0.60) ──┤
+                    │                    └── Baik (0.98)
+    BARANG ─────────┤
+                    │                    ┌── Rusak (0.05) → P(B ∩ R) = 0.40 × 0.05 = 0.020
+                    └── Mesin B (0.40) ──┤
+                                         └── Baik (0.95)
+
+    P(R) Total = 0.012 + 0.020 = 0.032
+
+    P(B|R) = P(B ∩ R) / P(R) = 0.020 / 0.032 = 0.625
+                                </pre>
+                            </div>
+                        </details>
+
+                        <!-- Cara Jelaskan ke Dosen -->
+                        <div class="how-to-explain mb-6">
+                            <p class="text-neonPink font-bold text-lg mb-3">🎤 CARA JELASKAN KE DOSEN:</p>
+                            <div class="bg-black/50 p-4 rounded text-gray-200">
+                                <p class="mb-3"><span class="text-neonYellow">"Bu Dini, untuk soal probabilitas bersyarat ini:</span></p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 1:</span> Saya tulis dulu semua data yang diketahui. Mesin A produksi 60% dengan rusak 2%. Mesin B produksi 40% dengan rusak 5%.</p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 2:</span> Saya hitung dulu P(R) total, yaitu peluang rusak dari semua mesin. P(R) = (0.60 × 0.02) + (0.40 × 0.05) = 0.012 + 0.020 = 0.032</p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 3:</span> Lalu saya pakai rumus Bayes. P(B|R) = P(B) dikali P(R|B), dibagi P(R). Jadi P(B|R) = 0.020 dibagi 0.032 = 0.625</p>
+                                <p class="mb-2"><span class="text-neonCyan">Kesimpulan:</span> Jadi jika barang itu rusak, peluang berasal dari Mesin B adalah 0.625 atau 62.5%."</p>
+                            </div>
+                        </div>
+
+                        <!-- Latihan -->
+                        <details class="group mb-4">
+                            <summary class="cursor-pointer text-neonCyan hover:text-neonYellow transition flex items-center gap-2 p-3 bg-black/30 rounded">
+                                <span class="group-open:rotate-90 transition-transform">▶</span>
+                                <span>📝 LATIHAN SOAL VARIASI</span>
+                            </summary>
+                            <div class="mt-4 space-y-4">
+                                <div class="practice-item p-4 rounded bg-black/30">
+                                    <p class="text-neonPink font-bold">Soal 5.1: 3 Kotak Komponen</p>
+                                    <p class="text-gray-300 text-sm mt-2">Kotak I: 10 bagus, 2 rusak. Kotak II: 8 bagus, 4 rusak. Kotak III: 6 bagus, 6 rusak.</p>
+                                    <p class="text-gray-300 text-sm">Jika 1 kotak dipilih acak, lalu 1 komponen diambil dan RUSAK, peluang dari Kotak III?</p>
+                                    <div class="mt-3 p-3 bg-neonPink/10 rounded border border-neonPink/30">
+                                        <p class="text-neonCyan font-bold">Langkah:</p>
+                                        <p class="text-gray-300 text-sm">• P(I) = P(II) = P(III) = 1/3</p>
+                                        <p class="text-gray-300 text-sm">• P(R|I) = 2/12, P(R|II) = 4/12, P(R|III) = 6/12</p>
+                                        <p class="text-gray-300 text-sm">• P(R) = (1/3)(2/12) + (1/3)(4/12) + (1/3)(6/12) = (1/3)(12/12) × (1/3) = 12/36 = 1/3</p>
+                                        <p class="text-gray-300 text-sm">• P(III|R) = [(1/3)(6/12)] / (1/3) = <span class="text-neonYellow font-bold">0.5 = 50%</span></p>
+                                    </div>
+                                </div>
+                                <div class="practice-item p-4 rounded bg-black/30">
+                                    <p class="text-neonPink font-bold">Soal 5.2: Hujan dan Macet</p>
+                                    <p class="text-gray-300 text-sm mt-2">P(hujan)=0.4, P(macet|hujan)=0.8, P(macet|tidak hujan)=0.3</p>
+                                    <p class="text-gray-300 text-sm">Jika MACET, peluang TIDAK hujan?</p>
+                                    <div class="mt-3 p-3 bg-neonPink/10 rounded border border-neonPink/30">
+                                        <p class="text-neonCyan font-bold">Langkah:</p>
+                                        <p class="text-gray-300 text-sm">• P(H) = 0.4, P(H') = 0.6</p>
+                                        <p class="text-gray-300 text-sm">• P(M) = (0.4×0.8) + (0.6×0.3) = 0.32 + 0.18 = 0.50</p>
+                                        <p class="text-gray-300 text-sm">• P(H'|M) = (0.6×0.3)/0.50 = 0.18/0.50 = <span class="text-neonYellow font-bold">0.36 = 36%</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </details>
+
+                        <button onclick="completeSection(5)" id="btn-5" class="w-full py-4 bg-neonPink text-black font-bold rounded hover:bg-pink-400 transition text-lg">
+                            ✓ SAYA SUDAH PAHAM - UNLOCK MATERI 6
+                        </button>
+                    </div>
+                </div>
+
+                <!-- ==================== MATERIAL 6: VARIABEL ACAK DISKRIT ==================== -->
+                <div id="material-6" class="material-card card-locked border-2 border-neonGreen rounded-lg bg-darkCard overflow-hidden exam-card">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-bold text-neonGreen flex items-center gap-3">
+                                <span class="w-10 h-10 rounded-full bg-neonGreen text-black flex items-center justify-center font-bold">6</span>
+                                VARIABEL ACAK DISKRIT (E(X) dan Var(X))
+                            </h3>
+                            <span id="status-6" class="px-3 py-1 rounded text-xs bg-gray-600">TERKUNCI</span>
+                        </div>
+
+                        <!-- SOAL -->
+                        <div class="formula-box p-4 rounded mb-6">
+                            <p class="text-neonYellow font-bold mb-2">📌 SOAL:</p>
+                            <p class="text-white text-lg mb-3">Distribusi permintaan barang per hari (X) adalah sebagai berikut:</p>
+                            <div class="overflow-x-auto">
+                                <table class="text-sm border border-neonGreen/50 mx-auto">
+                                    <tr class="bg-neonGreen/20">
+                                        <td class="p-3 border border-neonGreen/30 font-bold text-neonCyan">X</td>
+                                        <td class="p-3 border border-neonGreen/30 text-center">0</td>
+                                        <td class="p-3 border border-neonGreen/30 text-center">1</td>
+                                        <td class="p-3 border border-neonGreen/30 text-center">2</td>
+                                        <td class="p-3 border border-neonGreen/30 text-center">3</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="p-3 border border-neonGreen/30 font-bold text-neonCyan">P(X)</td>
+                                        <td class="p-3 border border-neonGreen/30 text-center">0.1</td>
+                                        <td class="p-3 border border-neonGreen/30 text-center">0.4</td>
+                                        <td class="p-3 border border-neonGreen/30 text-center">0.3</td>
+                                        <td class="p-3 border border-neonGreen/30 text-center">0.2</td>
+                                    </tr>
+                                </table>
+                            </div>
+                            <p class="text-neonCyan mt-3">Hitunglah <span class="font-bold">Nilai Harapan E(X)</span> dan <span class="font-bold">Variansi Var(X)</span>!</p>
+                        </div>
+
+                        <!-- PENJELASAN SIMBOL -->
+                        <div class="symbol-explain mb-6">
+                            <p class="text-neonYellow font-bold mb-3">📖 PENJELASAN SIMBOL & CARA BACA:</p>
+                            <div class="grid md:grid-cols-2 gap-3 text-sm">
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">E(X)</p>
+                                    <p class="read-as">🔊 Dibaca: "E X" atau "Ekspektasi X" atau "Expected value of X"</p>
+                                    <p class="text-gray-400">Artinya: Nilai HARAPAN atau nilai rata-rata yang diharapkan</p>
+                                    <p class="text-neonYellow text-sm mt-1">Juga disebut: μ (mu) atau Mean</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">Var(X)</p>
+                                    <p class="read-as">🔊 Dibaca: "Var X" atau "Variansi X" atau "Variance of X"</p>
+                                    <p class="text-gray-400">Artinya: Ukuran sebaran/penyebaran data dari rata-rata</p>
+                                    <p class="text-neonYellow text-sm mt-1">Juga ditulis: σ² (sigma kuadrat)</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">σ (sigma)</p>
+                                    <p class="read-as">🔊 Dibaca: "sigma"</p>
+                                    <p class="text-gray-400">Artinya: Standar Deviasi = √Var(X)</p>
+                                    <p class="text-neonYellow text-sm mt-1">Akar kuadrat dari Variansi</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">Σ (sigma besar)</p>
+                                    <p class="read-as">🔊 Dibaca: "sigma" atau "jumlahkan semua"</p>
+                                    <p class="text-gray-400">Artinya: Tanda PENJUMLAHAN (sum)</p>
+                                    <p class="text-neonYellow text-sm mt-1">Σ berarti "jumlahkan dari awal sampai akhir"</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">E(X²)</p>
+                                    <p class="read-as">🔊 Dibaca: "E X kuadrat" atau "Ekspektasi X kuadrat"</p>
+                                    <p class="text-gray-400">Artinya: Nilai harapan dari X yang dikuadratkan dulu</p>
+                                    <p class="text-neonYellow text-sm mt-1">= Σ[X² × P(X)]</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">[E(X)]²</p>
+                                    <p class="read-as">🔊 Dibaca: "E X, kurung, kuadrat"</p>
+                                    <p class="text-gray-400">Artinya: Hitung E(X) dulu, BARU dikuadratkan</p>
+                                    <p class="text-neonYellow text-sm mt-1">⚠️ BERBEDA dengan E(X²)!</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RUMUS UTAMA -->
+                        <div class="grid md:grid-cols-2 gap-4 mb-6">
+                            <div class="p-4 bg-neonCyan/10 rounded border-2 border-neonCyan">
+                                <p class="text-neonCyan font-bold mb-2 text-center">📐 RUMUS NILAI HARAPAN:</p>
+                                <p class="text-2xl font-bold text-white text-center">E(X) = Σ[X × P(X)]</p>
+                                <p class="read-as mt-2 text-center text-sm">🔊 "E X sama dengan sigma X dikali P X"</p>
+                                <p class="text-gray-400 text-sm text-center mt-2">Artinya: Jumlahkan semua (nilai × peluangnya)</p>
+                            </div>
+                            <div class="p-4 bg-neonPink/10 rounded border-2 border-neonPink">
+                                <p class="text-neonPink font-bold mb-2 text-center">📐 RUMUS VARIANSI:</p>
+                                <p class="text-2xl font-bold text-white text-center">Var(X) = E(X²) - [E(X)]²</p>
+                                <p class="read-as mt-2 text-center text-sm">🔊 "Var X sama dengan E X kuadrat minus E X kurung kuadrat"</p>
+                                <p class="text-gray-400 text-sm text-center mt-2">Artinya: (Rata-rata kuadrat) - (Kuadrat rata-rata)</p>
+                            </div>
+                        </div>
+
+                        <!-- LANGKAH-LANGKAH -->
+                        <div class="bg-black/50 p-5 rounded border border-neonGreen/30 mb-6">
+                            <p class="text-neonGreen font-bold text-lg mb-4">✅ LANGKAH-LANGKAH PENGERJAAN:</p>
+                            
+                            <!-- Step 1 -->
+                            <div class="step-box mb-4">
+                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 1: Buat Tabel Perhitungan</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-gray-300 mb-3">Tambahkan kolom untuk X×P(X) dan X²×P(X):</p>
+                                    <div class="overflow-x-auto">
+                                        <table class="w-full text-sm border border-neonGreen/50">
+                                            <thead>
+                                                <tr class="bg-neonGreen/20">
+                                                    <th class="p-2 border border-neonGreen/30">X</th>
+                                                    <th class="p-2 border border-neonGreen/30">P(X)</th>
+                                                    <th class="p-2 border border-neonGreen/30 text-neonCyan">X × P(X)</th>
+                                                    <th class="p-2 border border-neonGreen/30">X²</th>
+                                                    <th class="p-2 border border-neonGreen/30 text-neonPink">X² × P(X)</th>
+                                                </tr>
+                                            </thead>
+                                            <tbody>
+                                                <tr>
+                                                    <td class="p-2 border border-neonGreen/30 text-center">0</td>
+                                                    <td class="p-2 border border-neonGreen/30 text-center">0.1</td>
+                                                    <td class="p-2 border border-neonGreen/30 text-center text-neonCyan">0 × 0.1 = 0</td>
+                                                    <td class="p-2 border border-neonGreen/30 text-center">0</td>
+                                                    <td class="p-2 border border-neonGreen/30 text-center text-neonPink">0 × 0.1 = 0</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="p-2 border border-neonGreen/30 text-center">1</td>
+                                                    <td class="p-2 border border-neonGreen/30 text-center">0.4</td>
+                                                    <td class="p-2 border border-neonGreen/30 text-center text-neonCyan">1 × 0.4 = 0.4</td>
+                                                    <td class="p-2 border border-neonGreen/30 text-center">1</td>
+                                                    <td class="p-2 border border-neonGreen/30 text-center text-neonPink">1 × 0.4 = 0.4</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="p-2 border border-neonGreen/30 text-center">2</td>
+                                                    <td class="p-2 border border-neonGreen/30 text-center">0.3</td>
+                                                    <td class="p-2 border border-neonGreen/30 text-center text-neonCyan">2 × 0.3 = 0.6</td>
+                                                    <td class="p-2 border border-neonGreen/30 text-center">4</td>
+                                                    <td class="p-2 border border-neonGreen/30 text-center text-neonPink">4 × 0.3 = 1.2</td>
+                                                </tr>
+                                                <tr>
+                                                    <td class="p-2 border border-neonGreen/30 text-center">3</td>
+                                                    <td class="p-2 border border-neonGreen/30 text-center">0.2</td>
+                                                    <td class="p-2 border border-neonGreen/30 text-center text-neonCyan">3 × 0.2 = 0.6</td>
+                                                    <td class="p-2 border border-neonGreen/30 text-center">9</td>
+                                                    <td class="p-2 border border-neonGreen/30 text-center text-neonPink">9 × 0.2 = 1.8</td>
+                                                </tr>
+                                                <tr class="bg-neonYellow/20 font-bold">
+                                                    <td class="p-2 border border-neonGreen/30 text-center" colspan="2">JUMLAH (Σ)</td>
+                                                    <td class="p-2 border border-neonGreen/30 text-center text-neonCyan text-lg">1.6</td>
+                                                    <td class="p-2 border border-neonGreen/30 text-center">-</td>
+                                                    <td class="p-2 border border-neonGreen/30 text-center text-neonPink text-lg">3.4</td>
+                                                </tr>
+                                            </tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 2 -->
+                            <div class="step-box mb-4">
+                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 2: Hitung E(X) = Nilai Harapan</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonYellow font-bold mb-2">Rumus:</p>
+                                    <p class="text-white text-lg mb-2">E(X) = Σ[X × P(X)]</p>
+                                    
+                                    <p class="text-neonYellow font-bold mb-2 mt-3">Substitusi:</p>
+                                    <p class="text-gray-300 mb-1">E(X) = (0×0.1) + (1×0.4) + (2×0.3) + (3×0.2)</p>
+                                    <p class="text-gray-300 mb-1">E(X) = 0 + 0.4 + 0.6 + 0.6</p>
+                                    
+                                    <div class="bg-neonGreen/10 p-3 rounded mt-3 border border-neonGreen">
+                                        <p class="text-white text-xl">E(X) = <span class="text-neonGreen font-bold text-3xl">1.6</span></p>
+                                        <p class="text-gray-400 text-sm mt-1">Artinya: Rata-rata permintaan barang adalah 1.6 unit per hari</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 3 -->
+                            <div class="step-box mb-4">
+                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 3: Hitung E(X²)</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonYellow font-bold mb-2">Rumus:</p>
+                                    <p class="text-white text-lg mb-2">E(X²) = Σ[X² × P(X)]</p>
+                                    
+                                    <p class="text-neonYellow font-bold mb-2 mt-3">Substitusi:</p>
+                                    <p class="text-gray-300 mb-1">E(X²) = (0²×0.1) + (1²×0.4) + (2²×0.3) + (3²×0.2)</p>
+                                    <p class="text-gray-300 mb-1">E(X²) = (0×0.1) + (1×0.4) + (4×0.3) + (9×0.2)</p>
+                                    <p class="text-gray-300 mb-1">E(X²) = 0 + 0.4 + 1.2 + 1.8</p>
+                                    
+                                    <div class="bg-neonGreen/10 p-3 rounded mt-3">
+                                        <p class="text-white text-xl">E(X²) = <span class="text-neonCyan font-bold text-2xl">3.4</span></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 4 -->
+                            <div class="step-box mb-4">
+                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 4: Hitung [E(X)]²</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonYellow font-bold mb-2">Ini adalah E(X) yang dikuadratkan:</p>
+                                    <p class="text-gray-300 mb-2">[E(X)]² = (1.6)²</p>
+                                    <p class="text-gray-300 mb-2">= 1.6 × 1.6</p>
+                                    
+                                    <div class="bg-neonGreen/10 p-3 rounded mt-3">
+                                        <p class="text-white text-xl">[E(X)]² = <span class="text-neonCyan font-bold text-2xl">2.56</span></p>
+                                    </div>
+                                    
+                                    <div class="mt-3 p-2 bg-red-900/20 rounded border border-red-500/30">
+                                        <p class="text-red-400 text-sm">⚠️ HATI-HATI! E(X²) ≠ [E(X)]²</p>
+                                        <p class="text-gray-400 text-xs">E(X²) = 3.4, sedangkan [E(X)]² = 2.56</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 5 -->
+                            <div class="step-box mb-4">
+                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 5: Hitung Var(X)</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonYellow font-bold mb-2">Rumus:</p>
+                                    <p class="text-white text-lg mb-2">Var(X) = E(X²) - [E(X)]²</p>
+                                    
+                                    <p class="text-neonYellow font-bold mb-2 mt-3">Substitusi:</p>
+                                    <p class="text-gray-300 mb-2">Var(X) = 3.4 - 2.56</p>
+                                    
+                                    <div class="bg-neonPink/10 p-3 rounded mt-3 border border-neonPink">
+                                        <p class="text-white text-xl">Var(X) = <span class="text-neonPink font-bold text-3xl">0.84</span></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 6 -->
+                            <div class="step-box">
+                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 6: Hitung Standar Deviasi σ (Opsional)</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonYellow font-bold mb-2">Rumus:</p>
+                                    <p class="text-white text-lg mb-2">σ = √Var(X)</p>
+                                    <p class="read-as mb-2">🔊 "Sigma sama dengan akar dari Var X"</p>
+                                    
+                                    <p class="text-neonYellow font-bold mb-2 mt-3">Hitung:</p>
+                                    <p class="text-gray-300 mb-2">σ = √0.84</p>
+                                    
+                                    <div class="bg-neonYellow/10 p-3 rounded border border-neonYellow mb-3">
+                                        <p class="text-neonYellow font-bold">🔢 DI KALKULATOR:</p>
+                                        <p class="text-white">Tekan: √ → 0.84 → = </p>
+                                        <p class="text-gray-400 text-sm">atau: 0.84 → √ (tergantung tipe kalkulator)</p>
+                                    </div>
+                                    
+                                    <div class="bg-neonGreen/10 p-3 rounded border border-neonGreen">
+                                        <p class="text-white text-xl">σ = <span class="text-neonGreen font-bold text-2xl">0.9165</span> ≈ 0.92</p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- RINGKASAN HASIL -->
+                            <div class="mt-6 p-4 bg-neonGreen/20 rounded border-2 border-neonGreen">
+                                <p class="text-neonGreen font-bold text-lg mb-3">📊 RINGKASAN HASIL:</p>
+                                <div class="grid md:grid-cols-3 gap-4">
+                                    <div class="p-3 bg-black/30 rounded text-center">
+                                        <p class="text-gray-400">Nilai Harapan</p>
+                                        <p class="text-neonCyan font-bold text-2xl">E(X) = 1.6</p>
+                                    </div>
+                                    <div class="p-3 bg-black/30 rounded text-center">
+                                        <p class="text-gray-400">Variansi</p>
+                                        <p class="text-neonPink font-bold text-2xl">Var(X) = 0.84</p>
+                                    </div>
+                                    <div class="p-3 bg-black/30 rounded text-center">
+                                        <p class="text-gray-400">Standar Deviasi</p>
+                                        <p class="text-neonGreen font-bold text-2xl">σ ≈ 0.92</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cara Jelaskan ke Dosen -->
+                        <div class="how-to-explain mb-6">
+                            <p class="text-neonPink font-bold text-lg mb-3">🎤 CARA JELASKAN KE DOSEN:</p>
+                            <div class="bg-black/50 p-4 rounded text-gray-200">
+                                <p class="mb-3"><span class="text-neonYellow">"Bu Dini, untuk menghitung E(X) dan Var(X):</span></p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 1:</span> Untuk E(X), saya kalikan setiap nilai X dengan peluangnya P(X), lalu dijumlahkan. E(X) = 0×0.1 + 1×0.4 + 2×0.3 + 3×0.2 = 1.6</p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 2:</span> Untuk Var(X), saya pakai rumus Var(X) = E(X²) - [E(X)]²</p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 3:</span> Saya hitung E(X²) dulu = 0²×0.1 + 1²×0.4 + 2²×0.3 + 3²×0.2 = 3.4</p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 4:</span> Lalu [E(X)]² = 1.6² = 2.56</p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 5:</span> Jadi Var(X) = 3.4 - 2.56 = 0.84</p>
+                                <p class="mb-2"><span class="text-neonCyan">Bonus:</span> Standar deviasinya σ = √0.84 = 0.92"</p>
+                            </div>
+                        </div>
+
+                        <!-- Latihan -->
+                        <details class="group mb-4">
+                            <summary class="cursor-pointer text-neonCyan hover:text-neonYellow transition flex items-center gap-2 p-3 bg-black/30 rounded">
+                                <span class="group-open:rotate-90 transition-transform">▶</span>
+                                <span>📝 LATIHAN: Ekspektasi Penjudi</span>
+                            </summary>
+                            <div class="mt-4 p-4 bg-black/30 rounded">
+                                <p class="text-neonGreen font-bold">Soal 6.1:</p>
+                                <p class="text-gray-300">Seorang penjudi melempar dadu. Jika keluar 6, menang Rp 60.000. Jika selainnya, kalah Rp 10.000. Tentukan ekspektasi kemenangan!</p>
+                                
+                                <div class="mt-4 p-3 bg-neonGreen/10 rounded border border-neonGreen/30">
+                                    <p class="text-neonCyan font-bold mb-2">Pembahasan:</p>
+                                    <p class="text-gray-300 text-sm">• P(menang) = 1/6, X₁ = +60.000</p>
+                                    <p class="text-gray-300 text-sm">• P(kalah) = 5/6, X₂ = -10.000</p>
+                                    <p class="text-gray-300 text-sm mt-2">E(X) = (1/6 × 60.000) + (5/6 × -10.000)</p>
+                                    <p class="text-gray-300 text-sm">E(X) = 10.000 + (-8.333)</p>
+                                    <p class="text-gray-300 text-sm">E(X) = <span class="text-neonYellow font-bold">+1.667</span></p>
+                                    <p class="text-neonGreen font-bold mt-2">Artinya: Rata-rata untung Rp 1.667 per lemparan!</p>
+                                </div>
+                            </div>
+                        </details>
+
+                        <button onclick="completeSection(6)" id="btn-6" class="w-full py-4 bg-neonGreen text-black font-bold rounded hover:bg-neonYellow transition text-lg">
+                            ✓ SAYA SUDAH PAHAM - UNLOCK MATERI 7 (LCG)
+                        </button>
+                    </div>
+                </div>
+
+# 📚 BAGIAN 3 dari 3 (TERAKHIR)
+
+Lanjutan kode (langsung paste setelah Bagian 2):
+
+```html
+                <!-- ==================== MATERIAL 7: LCG CALCULATOR ==================== -->
+                <div id="material-7" class="material-card card-locked border-2 border-neonYellow rounded-lg bg-darkCard overflow-hidden exam-card">
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h3 class="text-xl font-bold text-neonYellow flex items-center gap-3">
+                                <span class="w-10 h-10 rounded-full bg-neonYellow text-black flex items-center justify-center font-bold">7</span>
+                                LINEAR CONGRUENTIAL GENERATOR (LCG)
+                            </h3>
+                            <span class="px-3 py-1 rounded text-xs bg-neonYellow text-black font-bold">INTERAKTIF + NPM</span>
+                            <span id="status-7" class="px-3 py-1 rounded text-xs bg-gray-600">TERKUNCI</span>
+                        </div>
+
+                        <!-- SOAL -->
+                        <div class="formula-box p-4 rounded mb-6" style="border-left-color: #FFFF00;">
+                            <p class="text-neonYellow font-bold mb-2">📌 SOAL:</p>
+                            <p class="text-white text-lg">Bangkitkan 3 bilangan acak pertama (Z₁, Z₂, Z₃) menggunakan metode LCG dengan parameter:</p>
+                            <div class="grid grid-cols-2 md:grid-cols-4 gap-3 mt-3">
+                                <div class="p-2 bg-black/30 rounded text-center">
+                                    <p class="text-gray-400 text-sm">a (pengali)</p>
+                                    <p class="text-neonYellow font-bold text-xl">11</p>
+                                </div>
+                                <div class="p-2 bg-black/30 rounded text-center">
+                                    <p class="text-gray-400 text-sm">c (penambah)</p>
+                                    <p class="text-neonYellow font-bold text-xl">5</p>
+                                </div>
+                                <div class="p-2 bg-black/30 rounded text-center">
+                                    <p class="text-gray-400 text-sm">m (modulo)</p>
+                                    <p class="text-neonYellow font-bold text-xl">100</p>
+                                </div>
+                                <div class="p-2 bg-black/30 rounded text-center">
+                                    <p class="text-gray-400 text-sm">Z₀ (seed)</p>
+                                    <p class="text-neonCyan font-bold text-xl">3 digit NPM</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- PENJELASAN SIMBOL -->
+                        <div class="symbol-explain mb-6">
+                            <p class="text-neonYellow font-bold mb-3">📖 PENJELASAN SIMBOL & CARA BACA:</p>
+                            <div class="grid md:grid-cols-2 gap-3 text-sm">
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">Zᵢ</p>
+                                    <p class="read-as">🔊 Dibaca: "Z i" atau "Z sub i"</p>
+                                    <p class="text-gray-400">Artinya: Bilangan acak ke-i (hasil iterasi ke-i)</p>
+                                    <p class="text-neonYellow text-sm mt-1">Z₁ = hasil pertama, Z₂ = hasil kedua, dst</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">Zᵢ₋₁</p>
+                                    <p class="read-as">🔊 Dibaca: "Z i minus satu" atau "Z sebelumnya"</p>
+                                    <p class="text-gray-400">Artinya: Bilangan acak sebelumnya</p>
+                                    <p class="text-neonYellow text-sm mt-1">Untuk hitung Z₁, pakai Z₀. Untuk Z₂, pakai Z₁</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">Z₀ (seed)</p>
+                                    <p class="read-as">🔊 Dibaca: "Z nol" atau "seed" atau "nilai awal"</p>
+                                    <p class="text-gray-400">Artinya: Nilai awal untuk memulai perhitungan</p>
+                                    <p class="text-neonYellow text-sm mt-1">Di soal ini: 3 digit TERAKHIR NPM kamu!</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">a (multiplier)</p>
+                                    <p class="read-as">🔊 Dibaca: "a" atau "pengali"</p>
+                                    <p class="text-gray-400">Artinya: Angka yang mengalikan Z sebelumnya</p>
+                                    <p class="text-neonYellow text-sm mt-1">Di soal ini: a = 11</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">c (increment)</p>
+                                    <p class="read-as">🔊 Dibaca: "c" atau "penambah"</p>
+                                    <p class="text-gray-400">Artinya: Angka yang ditambahkan</p>
+                                    <p class="text-neonYellow text-sm mt-1">Di soal ini: c = 5</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonCyan font-bold text-xl">m (modulus)</p>
+                                    <p class="read-as">🔊 Dibaca: "m" atau "modulus" atau "pembagi"</p>
+                                    <p class="text-gray-400">Artinya: Pembagi untuk operasi modulo</p>
+                                    <p class="text-neonYellow text-sm mt-1">Di soal ini: m = 100</p>
+                                </div>
+                                <div class="p-3 bg-black/30 rounded md:col-span-2">
+                                    <p class="text-neonCyan font-bold text-xl">mod (modulo)</p>
+                                    <p class="read-as">🔊 Dibaca: "mod" atau "modulo"</p>
+                                    <p class="text-gray-400">Artinya: Operasi SISA BAGI. Contoh: 13 mod 5 = 3 (karena 13 ÷ 5 = 2 sisa 3)</p>
+                                    <p class="text-neonYellow text-sm mt-1">⚠️ Kalkulator CASIO tidak punya tombol mod! Lihat cheatsheet di bawah untuk triknya.</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- RUMUS UTAMA -->
+                        <div class="p-4 bg-neonYellow/10 rounded border-2 border-neonYellow mb-6">
+                            <p class="text-neonYellow font-bold mb-3 text-center text-xl">📐 RUMUS LCG:</p>
+                            <div class="bg-black/50 p-4 rounded text-center">
+                                <p class="text-3xl md:text-4xl font-bold text-white">Zᵢ = (a × Zᵢ₋₁ + c) mod m</p>
+                            </div>
+                            <p class="read-as mt-4 text-center">🔊 Dibaca: "Z i sama dengan a dikali Z i minus satu, ditambah c, mod m"</p>
+                            <p class="text-gray-400 text-sm text-center mt-2">Artinya: Z baru = (pengali × Z lama + penambah) sisa bagi modulus</p>
+                            
+                            <div class="mt-4 p-3 bg-black/30 rounded">
+                                <p class="text-neonCyan font-bold text-center">Dengan nilai dari soal:</p>
+                                <p class="text-2xl font-bold text-white text-center mt-2">Zᵢ = (11 × Zᵢ₋₁ + 5) mod 100</p>
+                            </div>
+                        </div>
+
+                        <!-- KALKULATOR LCG INTERAKTIF -->
+                        <div class="bg-black/50 p-5 rounded border-2 border-neonYellow mb-6">
+                            <p class="text-neonYellow font-bold text-lg mb-4">🔢 KALKULATOR LCG OTOMATIS:</p>
+                            
+                            <div class="mb-6">
+                                <label class="text-neonCyan block mb-2 font-bold">Masukkan 3 Digit TERAKHIR NPM Anda (Z₀):</label>
+                                <p class="text-gray-500 text-sm mb-3">Contoh: NPM 50419123 → masukkan 123</p>
+                                <input type="number" id="npmInput" min="0" max="999" placeholder="Contoh: 123"
+                                    class="w-full p-4 bg-black border-2 border-neonGreen rounded text-neonGreen text-2xl font-bold text-center focus:border-neonYellow focus:outline-none transition"
+                                    oninput="calculateLCG()">
+                            </div>
+
+                            <!-- Hasil Perhitungan -->
+                            <div id="lcgResults" class="space-y-4">
+                                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                    <div class="p-4 bg-neonGreen/10 rounded border-2 border-neonGreen text-center">
+                                        <p class="text-gray-400 text-sm mb-1">Iterasi 1</p>
+                                        <p class="text-neonCyan text-sm">Z₁ = (11 × Z₀ + 5) mod 100</p>
+                                        <p class="text-4xl font-bold text-neonGreen mt-2" id="z1Result">-</p>
+                                    </div>
+                                    <div class="p-4 bg-neonCyan/10 rounded border-2 border-neonCyan text-center">
+                                        <p class="text-gray-400 text-sm mb-1">Iterasi 2</p>
+                                        <p class="text-neonCyan text-sm">Z₂ = (11 × Z₁ + 5) mod 100</p>
+                                        <p class="text-4xl font-bold text-neonCyan mt-2" id="z2Result">-</p>
+                                    </div>
+                                    <div class="p-4 bg-neonPink/10 rounded border-2 border-neonPink text-center">
+                                        <p class="text-gray-400 text-sm mb-1">Iterasi 3</p>
+                                        <p class="text-neonCyan text-sm">Z₃ = (11 × Z₂ + 5) mod 100</p>
+                                        <p class="text-4xl font-bold text-neonPink mt-2" id="z3Result">-</p>
+                                    </div>
+                                </div>
+
+                                <!-- Langkah Detail -->
+                                <div id="lcgDetails" class="hidden p-4 bg-black/30 rounded border border-neonGreen/30">
+                                    <p class="text-neonYellow font-bold mb-3">📝 LANGKAH-LANGKAH PERHITUNGAN DETAIL:</p>
+                                    <div id="calculationSteps" class="space-y-3 font-mono text-sm"></div>
+                                </div>
+
+                                <!-- Bilangan Acak U -->
+                                <div class="p-4 bg-black/30 rounded border border-neonCyan/30">
+                                    <p class="text-neonCyan font-bold mb-2">📊 Konversi ke Bilangan Acak U (rentang 0-1):</p>
+                                    <p class="text-gray-400 text-sm mb-3">Rumus: Uᵢ = Zᵢ / m = Zᵢ / 100</p>
+                                    <p class="read-as text-sm mb-3">🔊 Dibaca: "U i sama dengan Z i dibagi m"</p>
+                                    <div class="grid grid-cols-3 gap-3 text-center">
+                                        <div class="p-3 bg-black/50 rounded">
+                                            <p class="text-xs text-gray-500">U₁ = Z₁ / 100</p>
+                                            <p class="text-neonGreen font-bold text-xl" id="u1Result">-</p>
+                                        </div>
+                                        <div class="p-3 bg-black/50 rounded">
+                                            <p class="text-xs text-gray-500">U₂ = Z₂ / 100</p>
+                                            <p class="text-neonCyan font-bold text-xl" id="u2Result">-</p>
+                                        </div>
+                                        <div class="p-3 bg-black/50 rounded">
+                                            <p class="text-xs text-gray-500">U₃ = Z₃ / 100</p>
+                                            <p class="text-neonPink font-bold text-xl" id="u3Result">-</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- CONTOH MANUAL LENGKAP -->
+                        <div class="bg-black/50 p-5 rounded border border-neonGreen/30 mb-6">
+                            <p class="text-neonGreen font-bold text-lg mb-4">✅ CONTOH PENGERJAAN MANUAL (Z₀ = 123):</p>
+                            
+                            <!-- Step 1 -->
+                            <div class="step-box mb-4">
+                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 1: Hitung Z₁</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-neonYellow font-bold mb-2">Rumus:</p>
+                                    <p class="text-white mb-2">Z₁ = (a × Z₀ + c) mod m</p>
+                                    
+                                    <p class="text-neonYellow font-bold mb-2 mt-3">Substitusi:</p>
+                                    <p class="text-gray-300 mb-1">Z₁ = (11 × 123 + 5) mod 100</p>
+                                    
+                                    <p class="text-neonYellow font-bold mb-2 mt-3">Hitung dalam kurung:</p>
+                                    <p class="text-gray-300 mb-1">• 11 × 123 = 1353</p>
+                                    <p class="text-gray-300 mb-1">• 1353 + 5 = 1358</p>
+                                    
+                                    <p class="text-neonYellow font-bold mb-2 mt-3">Hitung modulo (sisa bagi):</p>
+                                    <p class="text-gray-300 mb-1">• 1358 mod 100 = ?</p>
+                                    <p class="text-gray-300 mb-1">• 1358 ÷ 100 = 13.58</p>
+                                    <p class="text-gray-300 mb-1">• Ambil bagian bulat: 13</p>
+                                    <p class="text-gray-300 mb-1">• 13 × 100 = 1300</p>
+                                    <p class="text-gray-300 mb-1">• 1358 - 1300 = <span class="text-neonGreen font-bold">58</span></p>
+                                    
+                                    <div class="bg-neonGreen/10 p-3 rounded mt-3 border border-neonGreen">
+                                        <p class="text-white text-xl">Z₁ = <span class="text-neonGreen font-bold text-3xl">58</span></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 2 -->
+                            <div class="step-box mb-4">
+                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 2: Hitung Z₂</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-gray-300 mb-1">Z₂ = (11 × Z₁ + 5) mod 100</p>
+                                    <p class="text-gray-300 mb-1">Z₂ = (11 × 58 + 5) mod 100</p>
+                                    <p class="text-gray-300 mb-1">Z₂ = (638 + 5) mod 100</p>
+                                    <p class="text-gray-300 mb-1">Z₂ = 643 mod 100</p>
+                                    
+                                    <p class="text-neonYellow font-bold mb-2 mt-3">Hitung modulo:</p>
+                                    <p class="text-gray-300 mb-1">• 643 ÷ 100 = 6.43 → bulat = 6</p>
+                                    <p class="text-gray-300 mb-1">• 6 × 100 = 600</p>
+                                    <p class="text-gray-300 mb-1">• 643 - 600 = <span class="text-neonCyan font-bold">43</span></p>
+                                    
+                                    <div class="bg-neonCyan/10 p-3 rounded mt-3 border border-neonCyan">
+                                        <p class="text-white text-xl">Z₂ = <span class="text-neonCyan font-bold text-3xl">43</span></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Step 3 -->
+                            <div class="step-box mb-4">
+                                <p class="text-neonCyan font-bold text-lg mb-2">📍 LANGKAH 3: Hitung Z₃</p>
+                                <div class="p-3 bg-black/30 rounded">
+                                    <p class="text-gray-300 mb-1">Z₃ = (11 × Z₂ + 5) mod 100</p>
+                                    <p class="text-gray-300 mb-1">Z₃ = (11 × 43 + 5) mod 100</p>
+                                    <p class="text-gray-300 mb-1">Z₃ = (473 + 5) mod 100</p>
+                                    <p class="text-gray-300 mb-1">Z₃ = 478 mod 100</p>
+                                    
+                                    <p class="text-neonYellow font-bold mb-2 mt-3">Hitung modulo:</p>
+                                    <p class="text-gray-300 mb-1">• 478 ÷ 100 = 4.78 → bulat = 4</p>
+                                    <p class="text-gray-300 mb-1">• 4 × 100 = 400</p>
+                                    <p class="text-gray-300 mb-1">• 478 - 400 = <span class="text-neonPink font-bold">78</span></p>
+                                    
+                                    <div class="bg-neonPink/10 p-3 rounded mt-3 border border-neonPink">
+                                        <p class="text-white text-xl">Z₃ = <span class="text-neonPink font-bold text-3xl">78</span></p>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <!-- Ringkasan -->
+                            <div class="p-4 bg-neonYellow/10 rounded border-2 border-neonYellow">
+                                <p class="text-neonYellow font-bold text-lg mb-3">📊 RINGKASAN (Z₀ = 123):</p>
+                                <div class="grid grid-cols-4 gap-3 text-center">
+                                    <div class="p-2 bg-black/30 rounded">
+                                        <p class="text-gray-500 text-xs">Seed</p>
+                                        <p class="text-white font-bold">Z₀ = 123</p>
+                                    </div>
+                                    <div class="p-2 bg-black/30 rounded">
+                                        <p class="text-gray-500 text-xs">Iterasi 1</p>
+                                        <p class="text-neonGreen font-bold">Z₁ = 58</p>
+                                    </div>
+                                    <div class="p-2 bg-black/30 rounded">
+                                        <p class="text-gray-500 text-xs">Iterasi 2</p>
+                                        <p class="text-neonCyan font-bold">Z₂ = 43</p>
+                                    </div>
+                                    <div class="p-2 bg-black/30 rounded">
+                                        <p class="text-gray-500 text-xs">Iterasi 3</p>
+                                        <p class="text-neonPink font-bold">Z₃ = 78</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TRIK MODULO DI KALKULATOR -->
+                        <div class="bg-red-900/20 p-5 rounded border-2 border-red-500 mb-6">
+                            <p class="text-red-400 font-bold text-lg mb-4">⚠️ PENTING! TRIK MODULO DI KALKULATOR CASIO:</p>
+                            
+                            <p class="text-gray-300 mb-3">Kalkulator CASIO <span class="text-red-400 font-bold">TIDAK PUNYA</span> tombol MOD! Gunakan trik ini:</p>
+                            
+                            <div class="p-4 bg-black/50 rounded border border-neonYellow mb-4">
+                                <p class="text-neonYellow font-bold mb-2">📐 RUMUS MANUAL MODULO:</p>
+                                <p class="text-white text-xl text-center">Sisa = Angka - (Pembagi × Bulat(Angka/Pembagi))</p>
+                            </div>
+                            
+                            <div class="p-4 bg-black/50 rounded">
+                                <p class="text-neonCyan font-bold mb-3">📝 CONTOH: 1358 mod 100</p>
+                                <div class="space-y-2 text-gray-300">
+                                    <p><span class="text-neonYellow">Langkah 1:</span> Bagi → 1358 ÷ 100 = <span class="text-neonGreen">13.58</span></p>
+                                    <p><span class="text-neonYellow">Langkah 2:</span> Ambil bagian BULAT (depan koma) → <span class="text-neonGreen">13</span></p>
+                                    <p><span class="text-neonYellow">Langkah 3:</span> Kalikan dengan pembagi → 13 × 100 = <span class="text-neonGreen">1300</span></p>
+                                    <p><span class="text-neonYellow">Langkah 4:</span> Kurangi dari angka awal → 1358 - 1300 = <span class="text-neonPink font-bold text-xl">58</span></p>
+                                </div>
+                                
+                                <div class="mt-4 p-3 bg-neonGreen/10 rounded border border-neonGreen">
+                                    <p class="text-neonGreen font-bold">🔢 URUTAN DI KALKULATOR:</p>
+                                    <p class="text-white font-mono mt-2">1358 ÷ 100 = 13.58</p>
+                                    <p class="text-white font-mono">13 × 100 = 1300</p>
+                                    <p class="text-white font-mono">1358 - 1300 = <span class="text-neonYellow font-bold">58</span> ✓</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Cara Jelaskan ke Dosen -->
+                        <div class="how-to-explain mb-6">
+                            <p class="text-neonPink font-bold text-lg mb-3">🎤 CARA JELASKAN KE DOSEN:</p>
+                            <div class="bg-black/50 p-4 rounded text-gray-200">
+                                <p class="mb-3"><span class="text-neonYellow">"Bu Dini, untuk membangkitkan bilangan acak dengan LCG:</span></p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 1:</span> Saya tentukan dulu nilai awal Z₀ dari 3 digit terakhir NPM saya, misalnya 123.</p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 2:</span> Saya gunakan rumus Zᵢ = (11 × Zᵢ₋₁ + 5) mod 100</p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 3:</span> Untuk Z₁, saya hitung (11 × 123 + 5) = 1358. Lalu 1358 mod 100 = 58</p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 4:</span> Untuk Z₂, saya hitung (11 × 58 + 5) = 643. Lalu 643 mod 100 = 43</p>
+                                <p class="mb-2"><span class="text-neonCyan">Langkah 5:</span> Untuk Z₃, saya hitung (11 × 43 + 5) = 478. Lalu 478 mod 100 = 78</p>
+                                <p class="mb-2"><span class="text-neonCyan">Kesimpulan:</span> Jadi Z₁=58, Z₂=43, Z₃=78"</p>
+                            </div>
+                        </div>
+
+                        <!-- Latihan -->
+                        <details class="group mb-4">
+                            <summary class="cursor-pointer text-neonCyan hover:text-neonYellow transition flex items-center gap-2 p-3 bg-black/30 rounded">
+                                <span class="group-open:rotate-90 transition-transform">▶</span>
+                                <span>📝 LATIHAN SOAL VARIASI</span>
+                            </summary>
+                            <div class="mt-4 space-y-4">
+                                <div class="practice-item p-4 rounded bg-black/30">
+                                    <p class="text-neonYellow font-bold">Soal 7.1: Multiplicative RNG (c=0)</p>
+                                    <p class="text-gray-300 text-sm mt-2">LCG dengan a=7, c=0, m=20, Z₀=3. Hitung Z₄!</p>
+                                    <div class="mt-3 p-3 bg-neonYellow/10 rounded border border-neonYellow/30">
+                                        <p class="text-neonCyan font-bold">Langkah:</p>
+                                        <p class="text-gray-300 text-sm">Rumus: Zᵢ = (7 × Zᵢ₋₁) mod 20</p>
+                                        <p class="text-gray-300 text-sm">• Z₁ = (7 × 3) mod 20 = 21 mod 20 = <span class="text-neonGreen">1</span></p>
+                                        <p class="text-gray-300 text-sm">• Z₂ = (7 × 1) mod 20 = 7 mod 20 = <span class="text-neonGreen">7</span></p>
+                                        <p class="text-gray-300 text-sm">• Z₃ = (7 × 7) mod 20 = 49 mod 20 = <span class="text-neonGreen">9</span></p>
+                                        <p class="text-gray-300 text-sm">• Z₄ = (7 × 9) mod 20 = 63 mod 20 = <span class="text-neonYellow font-bold">3</span></p>
+                                    </div>
+                                </div>
+                                <div class="practice-item p-4 rounded bg-black/30">
+                                    <p class="text-neonYellow font-bold">Soal 7.2: LCG dengan parameter berbeda</p>
+                                    <p class="text-gray-300 text-sm mt-2">a=13, c=7, m=50, Z₀=10. Hitung U₁!</p>
+                                    <div class="mt-3 p-3 bg-neonYellow/10 rounded border border-neonYellow/30">
+                                        <p class="text-neonCyan font-bold">Langkah:</p>
+                                        <p class="text-gray-300 text-sm">• Z₁ = (13 × 10 + 7) mod 50</p>
+                                        <p class="text-gray-300 text-sm">• Z₁ = 137 mod 50</p>
+                                        <p class="text-gray-300 text-sm">• 137 ÷ 50 = 2.74 → bulat = 2</p>
+                                        <p class="text-gray-300 text-sm">• 137 - (2 × 50) = 137 - 100 = <span class="text-neonGreen">37</span></p>
+                                        <p class="text-gray-300 text-sm">• U₁ = Z₁ / m = 37 / 50 = <span class="text-neonYellow font-bold">0.74</span></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </details>
+
+                        <button onclick="completeSection(7)" id="btn-7" class="w-full py-4 bg-neonYellow text-black font-bold rounded hover:bg-yellow-300 transition text-lg">
+                            🎉 SELESAI! SEMUA MATERI TERBUKA
+                        </button>
+                    </div>
+                </div>
+
+            </div> <!-- End of materials space-y-8 -->
+        </section>
+
+        <!-- Completion Message -->
+        <div id="completionMessage" class="hidden mt-8 p-6 border-2 border-neonGreen rounded-lg bg-darkCard text-center">
+            <div class="text-6xl mb-4">🏆</div>
+            <h2 class="text-3xl font-bold text-neonGreen glow-text mb-4">SELAMAT!</h2>
+            <p class="text-neonCyan text-lg mb-2">Anda telah menyelesaikan semua 7 materi persiapan UTS!</p>
+            <p class="text-gray-400">Sekarang coba aktifkan "Mode Ujian" untuk simulasi tekanan ujian.</p>
+            <div class="mt-6 grid md:grid-cols-3 gap-4 text-sm">
+                <div class="p-3 bg-black/30 rounded">
+                    <p class="text-neonGreen font-bold">✓ Teori</p>
+                </div>
+                <div class="p-3 bg-black/30 rounded">
+                    <p class="text-neonGreen font-bold">✓ Probabilitas Kuis</p>
+                </div>
+                <div class="p-3 bg-black/30 rounded">
+                    <p class="text-neonGreen font-bold">✓ Distribusi Normal</p>
+                </div>
+                <div class="p-3 bg-black/30 rounded">
+                    <p class="text-neonGreen font-bold">✓ Distribusi Binomial</p>
+                </div>
+                <div class="p-3 bg-black/30 rounded">
+                    <p class="text-neonGreen font-bold">✓ Teorema Bayes</p>
+                </div>
+                <div class="p-3 bg-black/30 rounded">
+                    <p class="text-neonGreen font-bold">✓ Variabel Acak Diskrit</p>
+                </div>
+            </div>
+            <div class="mt-4 p-3 bg-neonYellow/10 rounded">
+                <p class="text-neonYellow font-bold">✓ LCG Calculator</p>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- ==================== CHEATSHEET KALKULATOR (STICKY FOOTER) ==================== -->
+    <div id="cheatsheet" class="cheatsheet-sticky bg-darkCard border-t-2 border-neonYellow no-print">
+        <div class="container mx-auto px-4">
+            <!-- Toggle Header -->
+            <div onclick="toggleCheatsheet()" class="cursor-pointer py-3 flex justify-between items-center">
+                <p class="text-neonYellow font-bold flex items-center gap-2">
+                    <span class="text-2xl">🧮</span> 
+                    CHEATSHEET KALKULATOR CASIO fx-85MS
+                    <span class="text-xs text-gray-400 ml-2">(Klik untuk buka/tutup)</span>
+                </p>
+                <span id="cheatsheetArrow" class="text-neonYellow text-2xl transition-transform">▲</span>
+            </div>
+            
+            <!-- Cheatsheet Content -->
+            <div id="cheatsheetContent" class="pb-6">
+                <div class="grid md:grid-cols-2 lg:grid-cols-4 gap-4">
+                    
+                    <!-- Cara Mematikan -->
+                    <div class="p-4 bg-black/50 rounded border border-red-500/30">
+                        <p class="text-red-400 font-bold mb-2 flex items-center gap-2">
+                            <span>🔴</span> CARA MEMATIKAN
+                        </p>
+                        <p class="text-gray-300 text-sm">Tekan:</p>
+                        <p class="text-neonYellow font-bold text-lg mt-1">SHIFT + AC</p>
+                        <p class="text-gray-500 text-xs mt-2">SHIFT (kiri atas) lalu AC (kanan tengah)</p>
+                    </div>
+                    
+                    <!-- Trik Modulo -->
+                    <div class="p-4 bg-black/50 rounded border border-neonYellow/30">
+                        <p class="text-neonYellow font-bold mb-2 flex items-center gap-2">
+                            <span>🔢</span> TRIK MODULO
+                        </p>
+                        <p class="text-gray-300 text-sm mb-2">Rumus:</p>
+                        <p class="text-neonCyan text-xs">Sisa = Angka - (Pembagi × Bulat)</p>
+                        <div class="mt-2 p-2 bg-black/50 rounded text-xs">
+                            <p class="text-gray-400">Contoh 1358 mod 100:</p>
+                            <p class="text-gray-300">1. 1358÷100 = 13.58</p>
+                            <p class="text-gray-300">2. 13 × 100 = 1300</p>
+                            <p class="text-gray-300">3. 1358-1300 = <span class="text-neonGreen font-bold">58</span></p>
+                        </div>
+                    </div>
+                    
+                    <!-- Tombol Pangkat -->
+                    <div class="p-4 bg-black/50 rounded border border-neonCyan/30">
+                        <p class="text-neonCyan font-bold mb-2 flex items-center gap-2">
+                            <span>📐</span> PANGKAT (xʸ)
+                        </p>
+                        <p class="text-gray-300 text-sm">Tombol:</p>
+                        <p class="text-neonYellow font-bold text-lg mt-1">x<sup>y</sup> atau ^</p>
+                        <p class="text-gray-500 text-xs mt-2">Contoh 0.8⁵:</p>
+                        <p class="text-gray-400 text-xs">0.8 → x<sup>y</sup> → 5 → =</p>
+                    </div>
+                    
+                    <!-- Akar Kuadrat -->
+                    <div class="p-4 bg-black/50 rounded border border-neonPink/30">
+                        <p class="text-neonPink font-bold mb-2 flex items-center gap-2">
+                            <span>√</span> AKAR KUADRAT
+                        </p>
+                        <p class="text-gray-300 text-sm">Tombol:</p>
+                        <p class="text-neonYellow font-bold text-lg mt-1">√ (langsung)</p>
+                        <p class="text-gray-500 text-xs mt-2">Contoh √0.84:</p>
+                        <p class="text-gray-400 text-xs">√ → 0.84 → = (atau sebaliknya)</p>
+                    </div>
+                    
+                </div>
+                
+                <!-- Tips Tambahan -->
+                <div class="mt-4 p-4 bg-neonGreen/5 rounded border border-neonGreen/20">
+                    <p class="text-neonGreen font-bold mb-2">💡 TIPS UJIAN:</p>
+                    <div class="grid md:grid-cols-3 gap-4 text-sm text-gray-400">
+                        <p>• Tulis rumus dulu, baru substitusi nilai</p>
+                        <p>• Selalu cek hasil dengan logika</p>
+                        <p>• Gunakan kurung jika ragu urutan operasi</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ==================== JAVASCRIPT ==================== -->
+    <script>
+        // ===== STATE MANAGEMENT =====
+        let completedSections = new Set();
+        let isExamMode = false;
+        let timerInterval = null;
+        let examTimeRemaining = 60 * 60; // 60 menit dalam detik
+        let isCheatsheetExpanded = false;
+
+        // ===== INITIALIZE =====
+        document.addEventListener('DOMContentLoaded', () => {
+            loadProgress();
+            updateProgressBar();
+        });
+
+        // ===== COMPLETE SECTION & UNLOCK NEXT =====
+        function completeSection(sectionNum) {
+            completedSections.add(sectionNum);
+            saveProgress();
+            
+            // Update status badge
+            const status = document.getElementById(`status-${sectionNum}`);
+            if (status) {
+                status.textContent = '✓ SELESAI';
+                status.className = 'px-3 py-1 rounded text-xs bg-green-600 text-white';
+            }
+            
+            // Update button
+            const btn = document.getElementById(`btn-${sectionNum}`);
+            if (btn) {
+                btn.textContent = '✓ SUDAH DIPAHAMI';
+                btn.disabled = true;
+                btn.className = 'w-full py-4 bg-green-800 text-green-300 font-bold rounded cursor-not-allowed text-lg';
+            }
+            
+            // Unlock next section
+            const nextSection = document.getElementById(`material-${sectionNum + 1}`);
+            if (nextSection) {
+                nextSection.classList.remove('card-locked');
+                nextSection.classList.add('card-unlocked');
+                
+                const nextStatus = document.getElementById(`status-${sectionNum + 1}`);
+                if (nextStatus) {
+                    nextStatus.textContent = 'BELUM DIBACA';
+                    nextStatus.className = 'px-3 py-1 rounded text-xs bg-yellow-600';
+                }
+                
+                // Scroll ke section berikutnya
+                setTimeout(() => {
+                    nextSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }, 300);
+            }
+            
+            // Cek completion
+            if (completedSections.size === 7) {
+                document.getElementById('completionMessage').classList.remove('hidden');
+                document.getElementById('completionMessage').scrollIntoView({ behavior: 'smooth' });
+            }
+            
+            updateProgressBar();
+            flashScreen();
+        }
+
+        // ===== FLASH EFFECT =====
+        function flashScreen() {
+            const flash = document.createElement('div');
+            flash.className = 'fixed inset-0 bg-neonGreen/20 pointer-events-none z-50';
+            document.body.appendChild(flash);
+            setTimeout(() => flash.remove(), 200);
+        }
+
+        // ===== PROGRESS BAR =====
+        function updateProgressBar() {
+            const progress = (completedSections.size / 7) * 100;
+            document.getElementById('progressBar').style.width = `${progress}%`;
+            document.getElementById('progressText').textContent = `${completedSections.size}/7`;
+        }
+
+        // ===== SAVE/LOAD PROGRESS =====
+        function saveProgress() {
+            localStorage.setItem('utsProgress', JSON.stringify([...completedSections]));
+        }
+
+        function loadProgress() {
+            const saved = localStorage.getItem('utsProgress');
+            if (saved) {
+                completedSections = new Set(JSON.parse(saved));
+                
+                // Restore UI state
+                completedSections.forEach(num => {
+                    const status = document.getElementById(`status-${num}`);
+                    if (status) {
+                        status.textContent = '✓ SELESAI';
+                        status.className = 'px-3 py-1 rounded text-xs bg-green-600 text-white';
+                    }
+                    
+                    const btn = document.getElementById(`btn-${num}`);
+                    if (btn) {
+                        btn.textContent = '✓ SUDAH DIPAHAMI';
+                        btn.disabled = true;
+                        btn.className = 'w-full py-4 bg-green-800 text-green-300 font-bold rounded cursor-not-allowed text-lg';
+                    }
+                    
+                    // Unlock next
+                    const nextSection = document.getElementById(`material-${num + 1}`);
+                    if (nextSection) {
+                        nextSection.classList.remove('card-locked');
+                        const nextStatus = document.getElementById(`status-${num + 1}`);
+                        if (nextStatus && !completedSections.has(num + 1)) {
+                            nextStatus.textContent = 'BELUM DIBACA';
+                            nextStatus.className = 'px-3 py-1 rounded text-xs bg-yellow-600';
+                        }
+                    }
+                });
+                
+                if (completedSections.size === 7) {
+                    document.getElementById('completionMessage').classList.remove('hidden');
+                }
+            }
+        }
+
+        // ===== LCG CALCULATOR =====
+        function calculateLCG() {
+            const npmInput = document.getElementById('npmInput').value;
+            const npm = parseInt(npmInput);
+            
+            // Validate input
+            if (npmInput === '' || isNaN(npm) || npm < 0) {
+                resetLCGResults();
+                return;
+            }
+            
+            // Parameters
+            const a = 11;
+            const c = 5;
+            const m = 100;
+            
+            // Z0 = 3 digit terakhir (mod 1000 untuk safety, tapi tampilkan mod 100 untuk seed)
+            const z0_display = npm % 1000; // untuk display
+            const z0 = npm % 100; // untuk kalkulasi jika > 100
+            
+            // Calculate Z1, Z2, Z3
+            const z1_full = a * (npm % 1000) + c;
+            const z1 = z1_full % m;
+            
+            const z2_full = a * z1 + c;
+            const z2 = z2_full % m;
+            
+            const z3_full = a * z2 + c;
+            const z3 = z3_full % m;
+            
+            // Display results
+            document.getElementById('z1Result').textContent = z1;
+            document.getElementById('z2Result').textContent = z2;
+            document.getElementById('z3Result').textContent = z3;
+            
+            // Calculate and display U values
+            document.getElementById('u1Result').textContent = (z1 / m).toFixed(2);
+            document.getElementById('u2Result').textContent = (z2 / m).toFixed(2);
+            document.getElementById('u3Result').textContent = (z3 / m).toFixed(2);
+            
+            // Show detailed steps
+            const detailsDiv = document.getElementById('lcgDetails');
+            const stepsDiv = document.getElementById('calculationSteps');
+            
+            detailsDiv.classList.remove('hidden');
+            
+            const z0_used = npm % 1000;
+            const z1_bulat = Math.floor(z1_full / m);
+            const z2_bulat = Math.floor(z2_full / m);
+            const z3_bulat = Math.floor(z3_full / m);
+            
+            stepsDiv.innerHTML = `
+                <div class="p-3 bg-black/30 rounded border-l-4 border-white">
+                    <p class="text-gray-400">Nilai Awal (Seed):</p>
+                    <p class="text-white"><span class="text-neonYellow">Z₀</span> = ${z0_used} (3 digit terakhir NPM)</p>
+                </div>
+                
+                <div class="p-3 bg-black/30 rounded border-l-4 border-neonGreen">
+                    <p class="text-neonGreen font-bold mb-2">Iterasi 1 - Hitung Z₁:</p>
+                    <p class="text-gray-300">Z₁ = (11 × ${z0_used} + 5) mod 100</p>
+                    <p class="text-gray-300">Z₁ = (${11 * z0_used} + 5) mod 100</p>
+                    <p class="text-gray-300">Z₁ = ${z1_full} mod 100</p>
+                    <p class="text-gray-500 text-xs mt-1">→ ${z1_full} ÷ 100 = ${(z1_full/100).toFixed(2)} → bulat = ${z1_bulat}</p>
+                    <p class="text-gray-500 text-xs">→ ${z1_full} - (${z1_bulat} × 100) = ${z1_full} - ${z1_bulat * 100} = ${z1}</p>
+                    <p class="text-neonGreen font-bold text-xl mt-2">Z₁ = ${z1}</p>
+                </div>
+                
+                <div class="p-3 bg-black/30 rounded border-l-4 border-neonCyan">
+                    <p class="text-neonCyan font-bold mb-2">Iterasi 2 - Hitung Z₂:</p>
+                    <p class="text-gray-300">Z₂ = (11 × ${z1} + 5) mod 100</p>
+                    <p class="text-gray-300">Z₂ = (${11 * z1} + 5) mod 100</p>
+                    <p class="text-gray-300">Z₂ = ${z2_full} mod 100</p>
+                    <p class="text-gray-500 text-xs mt-1">→ ${z2_full} ÷ 100 = ${(z2_full/100).toFixed(2)} → bulat = ${z2_bulat}</p>
+                    <p class="text-gray-500 text-xs">→ ${z2_full} - (${z2_bulat} × 100) = ${z2_full} - ${z2_bulat * 100} = ${z2}</p>
+                    <p class="text-neonCyan font-bold text-xl mt-2">Z₂ = ${z2}</p>
+                </div>
+                
+                <div class="p-3 bg-black/30 rounded border-l-4 border-neonPink">
+                    <p class="text-neonPink font-bold mb-2">Iterasi 3 - Hitung Z₃:</p>
+                    <p class="text-gray-300">Z₃ = (11 × ${z2} + 5) mod 100</p>
+                    <p class="text-gray-300">Z₃ = (${11 * z2} + 5) mod 100</p>
+                    <p class="text-gray-300">Z₃ = ${z3_full} mod 100</p>
+                    <p class="text-gray-500 text-xs mt-1">→ ${z3_full} ÷ 100 = ${(z3_full/100).toFixed(2)} → bulat = ${z3_bulat}</p>
+                    <p class="text-gray-500 text-xs">→ ${z3_full} - (${z3_bulat} × 100) = ${z3_full} - ${z3_bulat * 100} = ${z3}</p>
+                    <p class="text-neonPink font-bold text-xl mt-2">Z₃ = ${z3}</p>
+                </div>
+                
+                <div class="p-3 bg-neonYellow/10 rounded border border-neonYellow">
+                    <p class="text-neonYellow font-bold">📊 RINGKASAN HASIL:</p>
+                    <p class="text-white mt-2">Z₀ = ${z0_used} → Z₁ = ${z1} → Z₂ = ${z2} → Z₃ = ${z3}</p>
+                    <p class="text-gray-400 mt-2">Bilangan Acak U (0-1):</p>
+                    <p class="text-white">U₁ = ${(z1/100).toFixed(2)}, U₂ = ${(z2/100).toFixed(2)}, U₃ = ${(z3/100).toFixed(2)}</p>
+                </div>
+            `;
+        }
+        
+        function resetLCGResults() {
+            document.getElementById('z1Result').textContent = '-';
+            document.getElementById('z2Result').textContent = '-';
+            document.getElementById('z3Result').textContent = '-';
+            document.getElementById('u1Result').textContent = '-';
+            document.getElementById('u2Result').textContent = '-';
+            document.getElementById('u3Result').textContent = '-';
+            document.getElementById('lcgDetails').classList.add('hidden');
+        }
+
+        // ===== EXAM MODE =====
+        function toggleExamMode() {
+            isExamMode = !isExamMode;
+            const body = document.getElementById('mainBody');
+            const timerBar = document.getElementById('examTimerBar');
+            const btn = document.getElementById('examModeBtn');
+            
+            if (isExamMode) {
+                // Enter Exam Mode
+                body.classList.add('exam-mode');
+                timerBar.classList.remove('hidden');
+                btn.innerHTML = '<span>🚫</span> KELUAR UJIAN';
+                btn.classList.remove('bg-red-600', 'hover:bg-red-500');
+                btn.classList.add('bg-green-600', 'hover:bg-green-500');
+                
+                // Start timer
+                startExamTimer();
+                
+                // Unlock all materials in exam mode
+                for (let i = 1; i <= 7; i++) {
+                    const section = document.getElementById(`material-${i}`);
+                    if (section) {
+                        section.classList.remove('card-locked');
+                    }
+                }
+                
+                // Hide cheatsheet
+                document.getElementById('cheatsheet').style.display = 'none';
+                
+                // Scroll to top
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+                
+            } else {
+                // Exit Exam Mode
+                body.classList.remove('exam-mode');
+                timerBar.classList.add('hidden');
+                btn.innerHTML = '<span>📝</span> MODE UJIAN';
+                btn.classList.remove('bg-green-600', 'hover:bg-green-500');
+                btn.classList.add('bg-red-600', 'hover:bg-red-500');
+                
+                // Stop timer
+                stopExamTimer();
+                
+                // Restore lock states
+                restoreLockStates();
+                
+                // Show cheatsheet
+                document.getElementById('cheatsheet').style.display = 'block';
+            }
+        }
+
+        function restoreLockStates() {
+            for (let i = 2; i <= 7; i++) {
+                if (!completedSections.has(i - 1)) {
+                    const section = document.getElementById(`material-${i}`);
+                    if (section) {
+                        section.classList.add('card-locked');
+                        section.classList.remove('card-unlocked');
+                    }
+                }
+            }
+        }
+
+        // ===== EXAM TIMER =====
+        function startExamTimer() {
+            examTimeRemaining = 60 * 60; // Reset to 60 minutes
+            updateTimerDisplay();
+            timerInterval = setInterval(() => {
+                examTimeRemaining--;
+                updateTimerDisplay();
+                
+                if (examTimeRemaining <= 0) {
+                    stopExamTimer();
+                    alert('⏰ WAKTU HABIS! Ujian selesai.');
+                    toggleExamMode();
+                }
+            }, 1000);
+        }
+
+        function stopExamTimer() {
+            if (timerInterval) {
+                clearInterval(timerInterval);
+                timerInterval = null;
+            }
+        }
+
+        function updateTimerDisplay() {
+            const minutes = Math.floor(examTimeRemaining / 60);
+            const seconds = examTimeRemaining % 60;
+            const display = `${minutes.toString().padStart(2, '0')}:${seconds.toString().padStart(2, '0')}`;
+            const timerElement = document.getElementById('examTimer');
+            timerElement.textContent = display;
+            
+            // Warning when less than 10 minutes
+            if (examTimeRemaining <= 600) {
+                timerElement.style.color = '#ff0000';
+                timerElement.style.animation = 'blink 0.5s infinite';
+            } else {
+                timerElement.style.color = '';
+                timerElement.style.animation = '';
+            }
+        }
+
+        // ===== CHEATSHEET TOGGLE =====
+        function toggleCheatsheet() {
+            isCheatsheetExpanded = !isCheatsheetExpanded;
+            const cheatsheet = document.getElementById('cheatsheet');
+            const arrow = document.getElementById('cheatsheetArrow');
+            
+            if (isCheatsheetExpanded) {
+                cheatsheet.classList.add('expanded');
+                arrow.style.transform = 'rotate(180deg)';
+            } else {
+                cheatsheet.classList.remove('expanded');
+                arrow.style.transform = 'rotate(0deg)';
+            }
+        }
+
+        // ===== RESET PROGRESS (untuk testing) =====
+        function resetProgress() {
+            if (confirm('Yakin ingin reset semua progress? Semua materi akan terkunci kembali.')) {
+                localStorage.removeItem('utsProgress');
+                location.reload();
+            }
+        }
+
+        // ===== KEYBOARD SHORTCUTS =====
+        document.addEventListener('keydown', (e) => {
+            // Jangan trigger jika sedang di input
+            if (e.target.matches('input, textarea')) return;
+            
+            // Press 'E' for exam mode
+            if (e.key === 'e' || e.key === 'E') {
+                toggleExamMode();
+            }
+            // Press 'C' for cheatsheet
+            if (e.key === 'c' || e.key === 'C') {
+                toggleCheatsheet();
+            }
+            // Press 'R' for reset (with Shift)
+            if ((e.key === 'r' || e.key === 'R') && e.shiftKey) {
+                resetProgress();
+            }
+        });
+    </script>
+
+    <!-- Hidden Reset Button -->
+    <button onclick="resetProgress()" 
+        class="fixed bottom-20 right-4 p-2 bg-red-900/50 text-red-400 rounded text-xs opacity-30 hover:opacity-100 transition no-print z-50"
+        title="Reset Progress (Shift+R)">
+        🔄 Reset
+    </button>
+
+    <!-- Keyboard Shortcuts Info -->
+    <div class="fixed bottom-20 left-4 text-xs text-gray-600 no-print hidden md:block">
+        <p>Shortcuts: [E] Exam Mode | [C] Cheatsheet | [Shift+R] Reset</p>
+    </div>
+
+</body>
+</html>
+```
+
+---
+
+## ✅ SELESAI! SEMUA 3 BAGIAN SUDAH LENGKAP
+
+### 📋 Cara Menggabungkan:
+1. **Buat file baru** bernama `uts-simulasi.html`
+2. **Copy-paste BAGIAN 1** (dari `<!DOCTYPE html>` sampai komentar `<!-- ============ LANJUTAN DI BAGIAN 2 ============ -->`)
+3. **Langsung lanjut paste BAGIAN 2** (dari Material 4 sampai komentar `<!-- ============ LANJUTAN DI BAGIAN 3 ============ -->`)
+4. **Langsung lanjut paste BAGIAN 3** (dari Material 7 sampai `</html>`)
+5. **Simpan dan buka di browser**
+
+---
+
+### 🎯 FITUR LENGKAP WEBSITE:
+
+| No | Fitur | Keterangan |
+|----|-------|------------|
+| 1 | **7 Materi Lengkap** | Teori, Probabilitas, Normal, Binomial, Bayes, Var Acak, LCG |
+| 2 | **Penjelasan Simbol** | Setiap simbol matematika ada cara baca & artinya |
+| 3 | **Langkah Detail** | Step-by-step pengerjaan dengan kalkulator |
+| 4 | **Cara Jelaskan ke Dosen** | Script untuk menjawab jika ditanya |
+| 5 | **LCG Interaktif** | Input NPM, hasil otomatis dengan langkah detail |
+| 6 | **Sistem Unlock** | Materi terkunci sampai sebelumnya selesai |
+| 7 | **Mode Ujian** | Tampilan putih + timer 60 menit |
+| 8 | **Cheatsheet Kalkulator** | Trik modulo, pangkat, akar |
+| 9 | **Progress Tersimpan** | Auto-save di browser |
+| 10 | **Keyboard Shortcuts** | E=Exam, C=Cheatsheet, Shift+R=Reset |
+
+### 📱 Keyboard Shortcuts:
+- **E** = Toggle Mode Ujian
+- **C** = Toggle Cheatsheet
+- **Shift + R** = Reset Progress
+
+---
+
+**Semoga sukses UTS-nya! 🎓✨**
