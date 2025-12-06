@@ -1,4 +1,4 @@
-name: Minify & Deploy to GitHub Pages
+name: Remove HTML comments & Deploy to GitHub Pages
 
 on:
   push:
@@ -20,21 +20,11 @@ jobs:
       - name: Checkout source
         uses: actions/checkout@v4
 
-      - name: Setup Node
-        uses: actions/setup-node@v4
-        with:
-          node-version: 20
-
-      - name: Install html-minifier-terser
-        run: npm install -g html-minifier-terser
-
-      - name: Minify index.html (hapus komentar)
+      - name: Remove HTML comments (tanpa minify)
         run: |
           mkdir dist
-          html-minifier-terser index.html \
-            --collapse-whitespace \
-            --remove-comments \
-            -o dist/index.html
+          # Hapus semua komentar <!-- ... --> dari index.html
+          perl -0pe 's/<!--.*?-->//sg' index.html > dist/index.html
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
@@ -46,6 +36,7 @@ jobs:
     runs-on: ubuntu-latest
     environment:
       name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - name: Deploy to GitHub Pages
         id: deployment
